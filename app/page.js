@@ -1,5 +1,6 @@
-import { useRouter } from "next/router";
+"use client"
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function Home() {
       {/* Image Section */}
       <div className="relative w-48 h-48 mb-6 animate-bounce">
         <Image
-          src="/interview.png"  // Replace with the path to your image
+          src="/interview.jpg"  
           alt="Interview"
           layout="fill"
           objectFit="cover"
@@ -37,19 +38,19 @@ export default function Home() {
         <div className="flex flex-col space-y-4">
           <div className="flex items-center space-x-4">
             <div className="bg-[#35bcbf] p-2 rounded-full">
-              <Image src="/feedback.png" width={24} height={24} alt="Feedback" />
+              <Image src="/feedback.jpg" width={24} height={24} alt="Feedback" />
             </div>
             <p>Instant Feedback and Analysis</p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="bg-[#35bcbf] p-2 rounded-full">
-              <Image src="/ai-powered.png" width={24} height={24} alt="AI Powered" />
+              <Image src="/ai-powered.jpg" width={24} height={24} alt="AI Powered" />
             </div>
             <p>AI-Powered Mock Interviews</p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="bg-[#35bcbf] p-2 rounded-full">
-              <Image src="/personalized.png" width={24} height={24} alt="Personalized" />
+              <Image src="/personalized.jpg" width={24} height={24} alt="Personalized" />
             </div>
             <p>Personalized Training Experience</p>
           </div>
