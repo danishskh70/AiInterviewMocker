@@ -1,0 +1,76 @@
+{
+  "id": "31070df4-5109-4830-a7d8-0c48db5cc7e9",
+  "prevId": "e6e0c166-fa1c-403e-a60a-24cc6b9391ee",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.mock_interviews": {
+      "name": "mock_interviews",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "mock_id": {
+          "name": "mock_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "json_response": {
+          "name": "json_response",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "job_position": {
+          "name": "job_position",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "job_description": {
+          "name": "job_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "job_experience": {
+          "name": "job_experience",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
