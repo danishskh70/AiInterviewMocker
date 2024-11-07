@@ -45,7 +45,28 @@ function AddNewInterview() {
     }
 
     // Update the InputPrompt to request plain text without symbols
-    const InputPrompt = `Job Position: ${jobPosition}, Description: ${jobDescription}, Experience: ${jobExperience} years. Please generate exactly 5 interview questions atleast with 4-5 lines in each question and answers in JSON format, where each question has a "Question" field and its corresponding answer has an "Answer" field. Ensure that response must not contains any symbols, special characters, or punctuation. Use only plain text in your response.`;
+   const InputPrompt = `Job Position: ${jobPosition}, Description: ${jobDescription}, Experience: ${jobExperience} years. Please generate exactly 5 interview questions, each with at least 4-5 lines in the question and its corresponding answer in a JSON format. Each question should have a "Question" field and its corresponding "Answer" field. The response should not contain any symbols, special characters, or punctuation. Use only plain text in your response. Example format:\n\n[
+  {
+    "Question": "Question text here",
+    "Answer": "Answer text here"
+  },
+  {
+    "Question": "Question text here",
+    "Answer": "Answer text here"
+  },
+  {
+    "Question": "Question text here",
+    "Answer": "Answer text here"
+  },
+  {
+    "Question": "Question text here",
+    "Answer": "Answer text here"
+  },
+  {
+    "Question": "Question text here",
+    "Answer": "Answer text here"
+  }
+]`;
 
     const result = await chatSession.generateContent(InputPrompt);
     const rawResponse = await result.response.text();
