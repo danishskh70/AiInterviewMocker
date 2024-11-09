@@ -51,7 +51,13 @@ function Interview({ params }) {
             </div>
             <div className='p-5 border-yellow-300 rounded-lg bg-yellow-100'>
               <h2 className='flex gap-2 items-center text-yellow-500'><Lightbulb /><strong>Information</strong></h2>
-              <p className='mt-3 text-yellow-600'>Lorem ipsum dolor sit amet consectetur adipisicing elit. Expedita nobis, iusto labore tempora ratione sunt praesentium facilis neque inventore eaque fuga, excepturi assumenda dolores perspiciatis odit itaque repellendus voluptas incidunt ex fugit minima nesciunt illo! Amet incidunt tempore error qui, illo distinctio itaque cum veniam hic similique autem magni nesciunt.</p>
+              <p className='mt-3 text-yellow-600'>
+              • Press <strong>Record</strong> for each question; each answer needs a new recording.<br />
+          • Recording stops automatically after one second of silence, or you can press <strong>Stop</strong> when done.<br />
+          • Click <strong>Next Question</strong> after recording to proceed smoothly.<br />
+          • Submit all answers at the end to receive feedback.<br />
+          • Take a moment to plan each answer—clear, concise responses are best.
+              </p>
             </div>
           </div>
 
