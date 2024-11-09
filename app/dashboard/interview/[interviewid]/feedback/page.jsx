@@ -16,6 +16,10 @@ import { Button } from '@/components/ui/button';
 function Feedback() {
   const { interviewid } = useParams();
   const [feedbackData, setFeedbackData] = useState([]);
+  const [averageRating, setAverageRating] = useState({
+    averageRating: 0,
+    percentage: 0
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -30,8 +34,26 @@ function Feedback() {
     console.log("Interview ID:", interviewid); // Check if interviewid is correct
     const result = await db.select().from(UserAnswer).where(eq(UserAnswer.mockIdRef, interviewid)).orderBy(UserAnswer.id);
     console.log("Feedback result:", result);
+    
     setFeedbackData(result);
+  
+    if (result.length > 0) {
+      // Calculate total rating by summing all feedback ratings
+      const totalRating = result.reduce((sum, feedback) => sum + parseInt(feedback.rating), 0); // Ensure it's a number
+      
+      // Calculate average rating by dividing total by number of feedback entries
+      const averageRating = totalRating / result.length;
+      
+      // Calculate percentage from the average rating (out of 10, so multiply by 10 for percentage)
+      const percentage = (averageRating * 10).toFixed(1); // Multiply by 10 to convert to percentage (out of 100)
+  
+      // Set both values in the state
+      setAverageRating({ averageRating: averageRating.toFixed(1), percentage: percentage });
+    } else {
+      setAverageRating({ averageRating: 0, percentage: 0 });
+    }
   };
+  
 
  
 
@@ -46,7 +68,10 @@ function Feedback() {
         <div>
           <div className="text-center w-full p-5 m-1">
             
-          <h2 className='text-blue-600 text-start text-lg my-3'>Your Overall Interview Rating: <strong>7/10</strong></h2>
+          <h2 className='text-blue-600 text-start text-lg my-3'>
+  Your Overall Interview Rating: <strong>{averageRating.averageRating}/10</strong> ({averageRating.percentage}%)
+</h2>
+
           <h2 className='text-sm text-start text-gray-500'>Find below Interview Question with correct Answer, your Answer, and feedback for your answer</h2>
 
           <div className="p-5 text-start">
