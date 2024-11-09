@@ -34,11 +34,7 @@ function QuestionSection({ mockInterviewQuestion, activeQuestionIndex }) {
             <Lightbulb />
             <strong>Note : </strong>
           </h2>
-          <h2 className='text-sm text-blue-500 my-2'> • Always press <strong>Record</strong> before speaking clearly.<br />
-          • Avoid long pauses, as recording stops automatically after brief silence.<br />
-          • Click <strong>Next Question</strong> to maintain a smooth interview flow.<br />
-          • Keep responses concise and focused to demonstrate clarity and confidence.<br />
-          • Stay composed—practice builds poise!</h2>
+          <h2 className='text-sm text-blue-500 my-2'>• Hit <strong>Record</strong> before you start talking clearly.<br /> • Don't take long breaks, as the recording cuts off after a short quiet spell.<br /> • Press <strong>Next Question</strong> to keep the interview moving smoothly.<br /> • Give short, to-the-point answers to show you're clear and sure of yourself.<br /> • Stay cool—the more you practice the more confident you'll be!</h2>
         </div>
       </div>
     </div>
