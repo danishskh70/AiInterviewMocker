@@ -29,7 +29,7 @@ function QuestionSection({ mockInterviewQuestion, activeQuestionIndex }) {
         </div>
         <h2 className='my-5 text-md md:text-lg'>{mockInterviewQuestion[activeQuestionIndex]?.Question}</h2>
         <Volume2 className='cursor-pointer' onClick={() => textToSpeach(mockInterviewQuestion[activeQuestionIndex]?.Question)} />
-        <div className='border rounded-lg p-5 bg-blue-100 mt-20' >
+        <div className='border rounded-lg p-5 bg-blue-100 mt-2' >
           <h2 className='flex gap-2 items-center text-blue-500 '>
             <Lightbulb />
             <strong>Note : </strong>
