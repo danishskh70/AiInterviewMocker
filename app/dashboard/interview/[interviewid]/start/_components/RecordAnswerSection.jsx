@@ -130,7 +130,7 @@ function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, inter
       <div className='flex flex-col justify-center items-center bg-black rounded-2xl p-1 mt-20'>
         <Image src={'/webcam2-removebg-preview.png'} width={250} height={250} className='absolute' alt='Webcam.png' />
         <Webcam style={{
-          height: 450,
+          height: 400,
           width: '100%',
           zIndex: 10
         }}
