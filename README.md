@@ -1,28 +1,38 @@
+# AI Interview Mocker 🎤
 
-AI Interview Mocker 🎤
 AI Interview Mocker is an innovative full-stack web application designed to help job seekers prepare for interviews with real-time AI feedback. Whether you're a fresh graduate or a seasoned professional, this tool empowers you to ace your next interview! 🚀
 
-🌟 Features
-Real-Time AI Feedback: Get instant analysis of your answers to improve your performance.
-Intuitive Design: Easy-to-use interface built for all levels of users.
-Custom Questions: Practice with tailored questions for your target role.
-Progress Tracking: Monitor improvements over time to stay motivated.
-🛠️ Tech Stack
+---
+
+## 🌟 Features
+
+- **Real-Time AI Feedback**: Get instant analysis of your answers to improve your performance.
+- **Intuitive Design**: Easy-to-use interface built for all levels of users.
+- **Custom Questions**: Practice with tailored questions for your target role.
+- **Progress Tracking**: Monitor improvements over time to stay motivated.
+
+---
+
+## 🛠️ Tech Stack
+
 AI Interview Mocker is powered by:
 
-Frontend: React.js with Next.js
-Backend: Node.js, Express.js
-Database: PostgreSQL
-AI Integration: OpenAI APIs
-🚀 Getting Started
-This is a Next.js project bootstrapped with create-next-app.
+- **Frontend**: React.js with Next.js
+- **Backend**: Node.js, Express.js
+- **Database**: PostgreSQL
+- **AI Integration**: OpenAI APIs
 
-Development Setup
+---
+
+## 🚀 Getting Started
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+
+### Development Setup
+
 First, clone the repository and install the dependencies:
 
-bash
-Copy
-Edit
+```bash
 git clone https://github.com/danishskh70/ai-interview-mocker.git
 cd ai-interview-mocker
 npm install
@@ -96,6 +106,3 @@ Have questions or suggestions? Reach out to me:
 💼 LinkedIn: Danish Shaikh
 ✨ Fun Fact
 AI Interview Mocker was inspired by the need for smarter, tech-driven interview preparation tools. Let's help job seekers worldwide ace their dream jobs! 💼
-
-🌟 Thank you for checking out AI Interview Mocker! Let's build the future together.
-
