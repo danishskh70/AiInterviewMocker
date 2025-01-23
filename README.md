@@ -1,10 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+AI Interview Mocker 🎤
+AI Interview Mocker is an innovative full-stack web application designed to help job seekers prepare for interviews with real-time AI feedback. Whether you're a fresh graduate or a seasoned professional, this tool empowers you to ace your next interview! 🚀
 
+🌟 Features
+Real-Time AI Feedback: Get instant analysis of your answers to improve your performance.
+Intuitive Design: Easy-to-use interface built for all levels of users.
+Custom Questions: Practice with tailored questions for your target role.
+Progress Tracking: Monitor improvements over time to stay motivated.
+🛠️ Tech Stack
+AI Interview Mocker is powered by:
+
+Frontend: React.js with Next.js
+Backend: Node.js, Express.js
+Database: PostgreSQL
+AI Integration: OpenAI APIs
+🚀 Getting Started
+This is a Next.js project bootstrapped with create-next-app.
+
+Development Setup
+First, clone the repository and install the dependencies:
+
+bash
+Copy
+Edit
+git clone https://github.com/danishskh70/ai-interview-mocker.git
+cd ai-interview-mocker
+npm install
+Next, set up the PostgreSQL database:
+
+Install PostgreSQL: If you don't have PostgreSQL installed, download and install it from here.
+Create a Database: Run the following command in the PostgreSQL terminal:
+bash
+Copy
+Edit
+CREATE DATABASE ai_interview_mocker;
+Set up the database connection: Modify the config/db.js file to connect your application to the PostgreSQL database:
+js
+Copy
+Edit
+const { Pool } = require('pg');
+const pool = new Pool({
+  user: 'your-username',
+  host: 'localhost',
+  database: 'ai_interview_mocker',
+  password: 'your-password',
+  port: 5432,
+});
+module.exports = pool;
+Running the App
 First, run the development server:
 
-```bash
+bash
+Copy
+Edit
 npm run dev
 # or
 yarn dev
@@ -12,25 +60,42 @@ yarn dev
 pnpm dev
 # or
 bun dev
-```
+Open http://localhost:3000 with your browser to see the result.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+You can start editing the page by modifying app/page.js. The page auto-updates as you edit the file.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+This project uses next/font to automatically optimize and load Geist, a new font family for Vercel.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
+📚 Learn More
 To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Next.js Documentation - learn about Next.js features and API.
+Learn Next.js - an interactive Next.js tutorial.
+You can check out the Next.js GitHub repository - your feedback and contributions are welcome!
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🌍 Deploy on Vercel
+The easiest way to deploy your Next.js app is to use the Vercel Platform from the creators of Next.js.
 
-## Deploy on Vercel
+Check out Next.js deployment documentation for more details.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+🌐 Website
+Visit the live website: AI Interview Mocker (Replace this with your actual URL)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+🤝 Contributing
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. If you have ideas to improve this project or find any bugs, feel free to fork the repository and submit a pull request!
+
+Fork the Project
+Create your Feature Branch (git checkout -b feature/YourFeature)
+Commit your Changes (git commit -m 'Add YourFeature')
+Push to the Branch (git push origin feature/YourFeature)
+Open a Pull Request
+📫 Contact
+Have questions or suggestions? Reach out to me:
+
+📧 Email: danishskh70@gmail.com
+💼 LinkedIn: Danish Shaikh
+✨ Fun Fact
+AI Interview Mocker was inspired by the need for smarter, tech-driven interview preparation tools. Let's help job seekers worldwide ace their dream jobs! 💼
+
+🌟 Thank you for checking out AI Interview Mocker! Let's build the future together.
+
