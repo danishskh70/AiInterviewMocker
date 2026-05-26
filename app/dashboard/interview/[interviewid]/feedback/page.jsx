@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from 'next/navigation'; // Import useParams to access route parameters
+import { useParams, useRouter } from 'next/navigation';
 import { db } from '@/utils/db';
 import { UserAnswer } from '@/utils/schema';
 import { eq } from 'drizzle-orm';
@@ -9,95 +9,89 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { ChevronsUpDown } from 'lucide-react';
+} from "@/components/ui/collapsible";
+import { ChevronsUpDown, Star, Award, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function Feedback() {
   const { interviewid } = useParams();
   const [feedbackData, setFeedbackData] = useState([]);
-  const [averageRating, setAverageRating] = useState({
-    averageRating: 0,
-    percentage: 0
-  });
+  const [stats, setStats] = useState({ average: 0, count: 0 });
   const router = useRouter();
 
   useEffect(() => {
-    if (interviewid) {
-      GetFeedback();
-    } else {
-      console.warn("Interview ID is undefined");
-    }
+    if (interviewid) GetFeedback();
   }, [interviewid]);
 
   const GetFeedback = async () => {
-    console.log("Interview ID:", interviewid); // Check if interviewid is correct
     const result = await db.select().from(UserAnswer).where(eq(UserAnswer.mockIdRef, interviewid)).orderBy(UserAnswer.id);
-    console.log("Feedback result:", result);
     
-    setFeedbackData(result);
-  
     if (result.length > 0) {
-      // Calculate total rating by summing all feedback ratings
-      const totalRating = result.reduce((sum, feedback) => sum + parseInt(feedback.rating), 0); // Ensure it's a number
-      
-      // Calculate average rating by dividing total by number of feedback entries
-      const averageRating = totalRating / result.length;
-      
-      // Calculate percentage from the average rating (out of 10, so multiply by 10 for percentage)
-      const percentage = (averageRating * 10).toFixed(1); // Multiply by 10 to convert to percentage (out of 100)
-  
-      // Set both values in the state
-      setAverageRating({ averageRating: averageRating.toFixed(1), percentage: percentage });
-    } else {
-      setAverageRating({ averageRating: 0, percentage: 0 });
+      const totalRating = result.reduce((sum, item) => sum + (parseFloat(item.rating) || 0), 0);
+      setStats({ average: (totalRating / result.length).toFixed(1), count: result.length });
     }
+    setFeedbackData(result);
   };
-  
-
- 
 
   return (
-    <div className='p-10'>
-      <h2 className='text-3xl font-bold text-green-500'>Congratulations!</h2>
-      <h2 className='font-bold text-2xl mt-6'>Here is your Interview Feedback</h2>
-
-      {feedbackData?.length == 0 ?
-        <h2 className='font-bold text-2xl text-gray-500 border text-center w-full p-52 m-1 '>No Interview Feedback Record Found </h2>
-        : 
+    <div className='p-6 md:p-10 max-w-5xl mx-auto'>
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <div className="text-center w-full p-5 m-1">
-            
-          <h2 className='text-blue-600 text-start text-lg my-3'>
-  Your Overall Interview Rating: <strong>{averageRating.averageRating}/10</strong> ({averageRating.percentage}%)
-</h2>
+          <h1 className='text-3xl font-bold text-slate-900'>Interview Feedback</h1>
+          <p className='text-slate-500'>Review your performance and areas for improvement.</p>
+        </div>
+        <Button onClick={() => router.replace('/dashboard')}>Go to Dashboard</Button>
+      </div>
 
-          <h2 className='text-sm text-start text-gray-500'>Find below Interview Question with correct Answer, your Answer, and feedback for your answer</h2>
+      {feedbackData.length === 0 ? (
+        <Card className="p-12 text-center text-slate-500">No feedback found for this interview.</Card>
+      ) : (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Overall Performance</CardTitle>
+                <Award className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-blue-900">{stats.average} / 10</div>
+                <p className="text-xs text-blue-600">Based on {stats.count} questions answered</p>
+              </CardContent>
+            </Card>
+          </div>
 
-          <div className="p-5 text-start">
-            {/* Render feedback data */}
-            {feedbackData.map((feedback, index) => (
-              <Collapsible key={index} >
-                <CollapsibleTrigger className=' p-3 flex gap-10 bg-gray-100 rounded-lg text-left justify-between my-2'>
-                  Question {index + 1} : {feedback.question} <ChevronsUpDown className='h-s w-5' />
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="flex flex-col gap-2 border p-6">
-                    <h2 className='text-red-500 p-2 text-lg '>  <strong>Rating : </strong>  {feedback.rating} / 10</h2>
-
-                    <p className='p-3 border rounded-lg bg-red-50 text-sm text-red-600 '><strong>Answer : </strong> {feedback.userAns}</p>
-                    <p className='p-3 border rounded-lg bg-blue-50 text-sm text-blue-600 '><strong>Correct Answer : </strong> {feedback.correctAns}</p>
-                    <p className='p-3 border rounded-lg bg-green-50 text-sm text-green-600 '><strong>Feedback : </strong> {feedback.feedback}</p>
+          <h2 className='text-xl font-semibold mt-8'>Question Analysis</h2>
+          {feedbackData.map((fb, index) => (
+            <Collapsible key={index} className="border rounded-xl shadow-sm bg-white">
+              <CollapsibleTrigger className='w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors'>
+                <div className="flex items-center gap-4">
+                  <span className="font-mono text-sm bg-slate-100 px-2 py-1 rounded">Q{index + 1}</span>
+                  <span className="font-medium text-left truncate">{fb.question}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className={`font-bold ${parseFloat(fb.rating) >= 7 ? 'text-green-600' : 'text-amber-600'}`}>
+                    {fb.rating}/10
+                  </span>
+                  <ChevronsUpDown className='h-4 w-4 text-slate-400' />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="p-4 pt-0 border-t bg-slate-50">
+                <div className="grid gap-4 pt-4">
+                  <div className="grid gap-1">
+                    <h4 className="text-sm font-semibold text-slate-900">Your Answer</h4>
+                    <p className="text-sm text-slate-600 bg-white p-3 rounded-md border">{fb.userAns}</p>
                   </div>
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
-
-
-          </div>
-          </div>
-        </div>}
-      <Button className='mt-4 justify-start' onClick={() => { router.replace('/dashboard') }}>Go Home </Button>
+                  <div className="grid gap-1">
+                    <h4 className="text-sm font-semibold text-slate-900">Expert Feedback</h4>
+                    <p className="text-sm text-emerald-800 bg-emerald-50 p-3 rounded-md border border-emerald-100">{fb.feedback}</p>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
