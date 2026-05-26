@@ -1,7 +1,6 @@
 "use client"
 import { Button } from '@/components/ui/button'
 import { db } from '@/utils/db';
-import { chatSession } from '@/utils/GeminiAiModal';
 import { UserAnswer } from '@/utils/schema';
 import { useUser } from '@clerk/nextjs';
 import { Mic, StopCircle } from 'lucide-react';
@@ -52,51 +51,21 @@ function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, inter
     }
   };
   const UpdateUserAnswer = async () => {
-    console.log("User Answer:", userAnswer);
-
     setLoading(true);
-    const feedbackPrompt = `Question: ${mockInterviewQuestion[activeQuestionIndex]?.Question}, User answer: ${userAnswer}. Based on the question and user answer for the given interview question, please provide a rating and feedback as areas of improvement in just 3 to 5 lines in JSON format with "rating" with number up to 10  , and "feedback" fields. Ensure that response must not contain any symbols, special characters, or punctuation. Use only plain text in your response.`;
 
     try {
-      const result = await chatSession.generateContent(feedbackPrompt);
-      let rawfeedback = await result.response.text();
+      const result = await fetch('/api/generate-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: mockInterviewQuestion[activeQuestionIndex]?.Question,
+          userAnswer: userAnswer
+        }),
+      });
 
+      if (!result.ok) throw new Error("Failed to generate feedback");
+      const feedbackData = await result.json();
 
-      console.log('Raw feedback from API:', rawfeedback);  // Log to see what is returned
-
-      // Check if rawfeedback is empty or null
-      if (!rawfeedback || rawfeedback.trim() === "") {
-        console.error("Empty or null feedback received from API.");
-        toast.error("Received empty feedback. Please try again.");
-        setLoading(false);
-        return;
-      }
-      rawfeedback = rawfeedback.replace(/```json|```/g, '').trim();
-
-      // Improved feedback cleaning to remove potential unwanted characters
-      const cleanedfeedback = rawfeedback.replace(/^```json\s*/i, '').replace(/\s*```$/, '').replace(/[^\x20-\x7E]+/g, '').trim();
-
-      console.log('Cleaned feedback:', cleanedfeedback); // Log cleaned feedback
-
-      // Parse the cleaned feedback as JSON
-      let feedbackData;
-      try {
-        feedbackData = JSON.parse(cleanedfeedback);  // Attempt to parse JSON
-      } catch (parseError) {
-        console.error("Error parsing feedback JSON response:", parseError);
-        toast.error("Invalid feedback format. Please try again.");
-        setLoading(false);
-        return;  // Stop execution if parsing fails
-      }
-
-      // Validate parsed feedback
-      if (!feedbackData || !feedbackData.feedback || !feedbackData.rating) {
-        toast.error("Failed to get valid feedback and rating. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      // Store the result in the database
       const resp = await db.insert(UserAnswer).values({
         mockIdRef: interviewdata.mockId,
         question: mockInterviewQuestion[activeQuestionIndex]?.Question,
@@ -109,20 +78,16 @@ function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, inter
       });
 
       if (resp) {
-        console.log("User Answer Recorded Successfully: " + resp);
+        toast.success("Answer recorded!");
         setUserAnswer(''); 
         setResults([]);
       }
-
-      setResults([]);
-
     } catch (error) {
-      console.error("Error generating content:", error);
-      toast.error("Failed to generate feedback. Please try again.");
+      console.error("Error processing answer:", error);
+      toast.error("Failed to process feedback. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-
-    setLoading(false);  // Stop the loading state
   };
 
   return (
