@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { chatSession } from "../../../utils/GeminiAiModal";
 import { LoaderCircle } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import moment from 'moment';
@@ -25,7 +24,6 @@ function AddNewInterview() {
   const [jobDescription, setJobDescription] = useState('');
   const [jobExperience, setJobExperience] = useState('');
   const [loading, setLoading] = useState(false);
-  const [jsonResponse, setJsonResponse] = useState([]);
   const { user } = useUser();
   const [isClient, setIsClient] = useState(false);
   const router = useRouter()
@@ -37,54 +35,21 @@ function AddNewInterview() {
     e.preventDefault();
     setLoading(true);
 
-    if (!chatSession) {
-      console.error("chatSession is not initialized.");
-      setLoading(false);
-      router.push('./dashboard/interview' + resp[0]?.mockId)
-      return;
-    }
-
-    // Update the InputPrompt to request plain text without symbols
-   const InputPrompt = `Job Position: ${jobPosition}, Description: ${jobDescription}, Experience: ${jobExperience} years. Please generate exactly 5 interview questions, each with at least 4-5 lines in the question and its corresponding answer in a JSON format. Each question should have a "Question" field and its corresponding "Answer" field. The response should not contain any symbols, special characters, or punctuation. Use only plain text in your response. Example format:\n\n[
-  {
-    "Question": "Question text here",
-    "Answer": "Answer text here"
-  },
-  {
-    "Question": "Question text here",
-    "Answer": "Answer text here"
-  },
-  {
-    "Question": "Question text here",
-    "Answer": "Answer text here"
-  },
-  {
-    "Question": "Question text here",
-    "Answer": "Answer text here"
-  },
-  {
-    "Question": "Question text here",
-    "Answer": "Answer text here"
-  }
-]`;
-
-    const result = await chatSession.generateContent(InputPrompt);
-    const rawResponse = await result.response.text();
-    // Clean the response by removing backticks, triple backticks, and any unwanted characters
-    const cleanedResponse = rawResponse
-      .replace(/^```json\s*/i, '') // Remove starting ```json
-      .replace(/\s*```$/, '') // Remove ending ```
-      .trim(); // Trim any surrounding whitespace
-
-
-    console.log(JSON.parse(cleanedResponse));
-    setJsonResponse(cleanedResponse);
-
-
     try {
+      const result = await fetch('/api/generate-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobPosition, jobDescription, jobExperience }),
+      });
+
+      if (!result.ok) throw new Error("Failed to generate questions");
+      
+      const jsonResponse = await result.json();
+      const rawResponseString = JSON.stringify(jsonResponse);
+
       const resp = await db.insert(MockInterview).values({
         mockId: uuidv4(),
-        jsonResponse: rawResponse,
+        jsonResponse: rawResponseString,
         jobPosition: jobPosition,
         jobDesc: jobDescription,
         jobExperience: jobExperience,
@@ -92,14 +57,10 @@ function AddNewInterview() {
         createdAt: moment().format('DD-MM-yyyy'),
       }).returning();
 
-
-      console.log("Inserted ID:", resp);
-
       if (resp) {
         router.push(`/dashboard/interview/${resp[0]?.mockId}`);
         setOpenDailog(false);
       }
-
     } catch (error) {
       console.error("Error during operation:", error);
     } finally {
