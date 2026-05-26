@@ -4,12 +4,17 @@ import { db } from '@/utils/db';
 import { UserAnswer } from '@/utils/schema';
 import { useUser } from '@clerk/nextjs';
 import { Mic, StopCircle } from 'lucide-react';
-import moment from 'moment';
+import { format } from 'date-fns';
 import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
 import useSpeechToText from 'react-hook-speech-to-text';
 import toast from 'react-hot-toast';
-import Webcam from 'react-webcam'
+import dynamic from 'next/dynamic';
+
+const DynamicWebcam = dynamic(() => import('react-webcam'), {
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full bg-gray-200 animate-pulse rounded-2xl" />,
+});
 
 function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, interviewdata }) {
   const [userAnswer, setUserAnswer] = useState('')
@@ -74,7 +79,7 @@ function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, inter
         feedback: feedbackData.feedback,
         rating: feedbackData.rating,
         userEmail: user?.primaryEmailAddress?.emailAddress,
-        createdAt: moment().format('DD-MM-yyyy')
+        createdAt: format(new Date(), 'dd-MM-yyyy')
       });
 
       if (resp) {
@@ -94,7 +99,7 @@ function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, inter
     <div className="flex flex-col items-center justify-center">
       <div className='flex flex-col justify-center items-center bg-black rounded-2xl p-1 mt-20'>
         <Image src={'/webcam2-removebg-preview.png'} width={250} height={250} className='absolute' alt='Webcam.png' />
-        <Webcam style={{
+        <DynamicWebcam style={{
           height: 400,
           width: '100%',
           zIndex: 10

@@ -49,14 +49,14 @@ function Interview({ params }) {
               <h2 className='text-lg'><strong>Job Description/Tech Stack:</strong> {interviewdata.jobDesc || 'Not Available'}</h2>
               <h2 className='text-lg'><strong>Years of Experience:</strong> {interviewdata.jobExperience || 'Not Available'}</h2>
             </div>
-            <div className='p-5 border-yellow-300 rounded-lg bg-yellow-100'>
-              <h2 className='flex gap-2 items-center text-yellow-500'><Lightbulb /><strong>Information</strong></h2>
-              <p className='mt-3 text-yellow-600'>
-              • Press for the <strong>Record</strong> command for each question; each answer requires a new recording.<br />
-• Recording automatically stops after one second of silence, or you can simply press <strong>Stop</strong> when done.<br />
-• Next, go for <strong>Next Question</strong> once recorded for a smooth flow.<br />
+            <div className='p-5 border rounded-lg bg-gray-50'>
+              <h2 className='flex gap-2 items-center text-gray-800'><Lightbulb /><strong>Information</strong></h2>
+              <p className='mt-3 text-gray-600 text-sm'>
+              • Press <strong>Record</strong> for each question; each answer requires a new recording.<br />
+• Recording automatically stops after one second of silence, or you can press <strong>Stop</strong>.<br />
+• Navigate to <strong>Next Question</strong> after recording for a smooth flow.<br />
 • Submit all answers at the end for feedback.<br />
-• Plan each response- answers should be clear and concise.
+• Plan responses for clarity and conciseness.
               </p>
             </div>
           </div>

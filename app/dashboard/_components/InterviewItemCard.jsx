@@ -12,14 +12,14 @@ function InterviewItemCard({interview}) {
     router.push(`/dashboard/interview/${interview?.mockId}/feedback`)
   }
   return (
-    <div className=' border rounded-lg shadow-sm p-2 '>
-      <h2 className='font-bold text-md text-blue-800 p-1 underline'>{interview?.jobPosition}</h2>
-      <h2 className='text-sm text-grey-600 p-1 '>Experience  of {interview?.jobExperience} years</h2>
-      <h2 className='text-xs text-gray-500 p-1'>Created At : {interview?.createdAt}</h2>
-   <div className=" flex justify-between gap-10 mt-2">
-   <Button size='sm' variant='outline' className='w-full' onClick={onFeedback}>Feedback</Button>
-   <Button size='sm'className='w-full' onClick={onStart} >Start</Button>
-   </div>
+    <div className='border rounded-lg p-4'>
+      <h2 className='font-semibold text-lg text-black'>{interview?.jobPosition}</h2>
+      <h2 className='text-sm text-gray-600'>Experience of {interview?.jobExperience} years</h2>
+      <h2 className='text-xs text-gray-400 mt-1'>Created At: {interview?.createdAt}</h2>
+      <div className="flex justify-between gap-4 mt-4">
+        <Button size='sm' variant='outline' className='w-full' onClick={onFeedback}>Feedback</Button>
+        <Button size='sm' className='w-full' onClick={onStart}>Start</Button>
+      </div>
     </div>
   )
 }

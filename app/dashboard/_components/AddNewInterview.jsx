@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { LoaderCircle } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import moment from 'moment';
+import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 
 function AddNewInterview() {
@@ -44,8 +44,11 @@ function AddNewInterview() {
 
       if (!result.ok) throw new Error("Failed to generate questions");
       
-      const jsonResponse = await result.json();
-      const rawResponseString = JSON.stringify(jsonResponse);
+      const questions = await result.json();
+      const rawResponseString = JSON.stringify(questions.map(q => ({
+        Question: q.question,
+        Answer: q.answer
+      })));
 
       const resp = await db.insert(MockInterview).values({
         mockId: uuidv4(),
@@ -54,7 +57,7 @@ function AddNewInterview() {
         jobDesc: jobDescription,
         jobExperience: jobExperience,
         createdBy: user?.primaryEmailAddress?.emailAddress,
-        createdAt: moment().format('DD-MM-yyyy'),
+        createdAt: format(new Date(), 'dd-MM-yyyy'),
       }).returning();
 
       if (resp) {
@@ -70,23 +73,23 @@ function AddNewInterview() {
   return (
     <div>
       <div
-        className="p-10 border rounded-lg bg-secondary hover:scale-105 hover:shadow-md cursor-pointer transition-all"
+        className="p-10 border rounded-lg hover:border-gray-400 cursor-pointer transition-colors"
         onClick={() => setOpenDailog(true)}
       >
-        <h2 className="text-lg text-center"> + Add new</h2>
+        <h2 className="text-lg text-center">+ Add new</h2>
       </div>
-      <Dialog open={openDailog}>
+      <Dialog open={openDailog} onOpenChange={setOpenDailog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl">Tell us more about the job Interview</DialogTitle>
-            <div className="text-sm text-muted-foreground">
+            <DialogDescription className="text-sm text-muted-foreground">
               <div>
                 <div className="mt-4 mb-2">
                   Add details about the job position, description, and years of experience
                 </div>
                 <form onSubmit={onSubmit}>
                   <div className="mt-7 my-3">
-                    <label className="mt-7 my-2">Job Role / Job Position</label>
+                    <label className="block text-sm font-medium mb-1">Job Role / Job Position</label>
                     <Input
                       placeholder="Ex. Full Stack Developer"
                       required
@@ -95,7 +98,7 @@ function AddNewInterview() {
                     />
                   </div>
                   <div className="my-3">
-                    <label className="mt-7 my-2">Job Description / Tech Stack</label>
+                    <label className="block text-sm font-medium mb-1">Job Description / Tech Stack</label>
                     <Textarea
                       placeholder="Ex. React, Angular, Node.js, SQL"
                       required
@@ -104,7 +107,7 @@ function AddNewInterview() {
                     />
                   </div>
                   <div className="my-3">
-                    <label className="mt-7 my-2">Years of Experience</label>
+                    <label className="block text-sm font-medium mb-1">Years of Experience</label>
                     <Input
                       type="number"
                       placeholder="Ex. 5"
@@ -114,14 +117,14 @@ function AddNewInterview() {
                       onChange={(event) => setJobExperience(event.target.value)}
                     />
                   </div>
-                  <div className="flex gap-5 justify-end">
+                  <div className="flex gap-5 justify-end mt-6">
                     <Button type="button" variant="ghost" onClick={() => setOpenDailog(false)}>
                       Cancel
                     </Button>
                     <Button type="submit" disabled={loading}>
                       {loading ? (
                         <>
-                          <LoaderCircle className="animate-spin" /> Generating from AI...
+                          <LoaderCircle className="animate-spin mr-2" /> Generating...
                         </>
                       ) : (
                         'Start Interview'
@@ -130,7 +133,7 @@ function AddNewInterview() {
                   </div>
                 </form>
               </div>
-            </div>
+            </DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>

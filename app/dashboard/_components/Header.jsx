@@ -1,37 +1,39 @@
 "use client"
 import { UserButton } from '@clerk/nextjs'
 import Image from 'next/image'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React, { useEffect } from 'react'
+import React from 'react'
 
 const Header = () => {
 
   const path = usePathname();
-  useEffect(() => {
-    console.log(path);
-  }, []);
 
   return (
-    <header className="bg-gradient-to-r from-secondary via-third-color to-fourth-color shadow-lg p-4">
-      <div className="container mx-auto flex items-center justify-between">
-        <Image src={'/logo.svg'} width={160} height={160} alt='logo' />
-        <ul className="hidden md:flex gap-8 text-sm lg:text-base font-medium">
-          <li className={`cursor-pointer transition duration-200 
-            ${path === '/dashboard' ? 'text-primary font-semibold' : 'text-gray-600 hover:text-primary hover:font-semibold'}`}>
-            Dashboard
-          </li>
-          <li className={`cursor-pointer transition duration-200 
-            ${path === '/dashboard/questions' ? 'text-primary font-semibold' : 'text-gray-600 hover:text-primary hover:font-semibold'}`}>
-            Questions
-          </li>
-          <li className={`cursor-pointer transition duration-200 
-            ${path === '/dashboard/upgrade' ? 'text-primary font-semibold' : 'text-gray-600 hover:text-primary hover:font-semibold'}`}>
-            Upgrade
-          </li>
-          <li className={`cursor-pointer transition duration-200 
-            ${path === '/dashboard/howitworks' ? 'text-primary font-semibold' : 'text-gray-600 hover:text-primary hover:font-semibold'}`}>
-            How it Works
-          </li>
+    <header className="border-b bg-white">
+      <div className="container mx-auto p-4 flex items-center justify-between">
+        <Image src={'/logo.svg'} width={120} height={40} alt='logo' />
+        <ul className="hidden md:flex gap-6 text-sm font-medium">
+          <Link href={'/dashboard'}>
+            <li className={`transition-colors ${path === '/dashboard' ? 'text-black font-bold' : 'text-gray-500 hover:text-black'}`}>
+              Dashboard
+            </li>
+          </Link>
+          <Link href={'/dashboard/questions'}>
+            <li className={`transition-colors ${path === '/dashboard/questions' ? 'text-black font-bold' : 'text-gray-500 hover:text-black'}`}>
+              Questions
+            </li>
+          </Link>
+          <Link href={'/dashboard/upgrade'}>
+            <li className={`transition-colors ${path === '/dashboard/upgrade' ? 'text-black font-bold' : 'text-gray-500 hover:text-black'}`}>
+              Upgrade
+            </li>
+          </Link>
+          <Link href={'/dashboard/howitworks'}>
+            <li className={`transition-colors ${path === '/dashboard/howitworks' ? 'text-black font-bold' : 'text-gray-500 hover:text-black'}`}>
+              How it Works
+            </li>
+          </Link>
         </ul>
         <UserButton />
       </div>
