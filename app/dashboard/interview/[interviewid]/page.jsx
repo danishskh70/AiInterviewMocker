@@ -37,6 +37,17 @@ function Interview({ params }) {
     setInterviewdata(result[0] || {});
   };
 
+  const handleEnableWebcamAndMic = async () => {
+    try {
+      // Request both devices
+      await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      setWebcamEnable(true);
+    } catch (err) {
+      console.error("Access denied:", err);
+      alert("Please allow camera and microphone access to continue.");
+    }
+  };
+
   return (
     <div>
       <div className='my-10 flex justify-center flex-col items-center'>
@@ -61,39 +72,39 @@ function Interview({ params }) {
             </div>
           </div>
 
-          <div className='flex flex-col gap-5'>
+          <div className='flex flex-col gap-5 items-start -mt-20'>
             {webcamEnable ? (
-              <Webcam
-                onUserMedia={() => setWebcamEnable(true)}
-                onUserMediaError={() => setWebcamEnable(false)}
-                style={{ height: 600, width: 600 }}
-                mirrored={true}
-              />
+              <div className="mt-[15px]">
+                <Webcam
+                  onUserMedia={() => setWebcamEnable(true)}
+                  onUserMediaError={() => setWebcamEnable(false)}
+                  style={{ height: 600, width: 600 }}
+                  mirrored={true}
+                />
+              </div>
             ) : (
               <>
                 <WebcamIcon className='h-72 w-full my-7 p-20 bg-secondary rounded-lg border' />
                 <Button
                   className='w-full hover:bg-gray-200'
                   variant='ghost'
-                  onClick={() => setWebcamEnable(true)}
+                  onClick={handleEnableWebcamAndMic}
                 >
                   Enable WebCam and Microphone
                 </Button>
               </>
             )}
-            {interviewId && (
-              <div className="flex justify-end items-end">
-                <Link href={`/dashboard/interview/${interviewId}/start`}>
-                  <Button onClick={() => router.push(`/dashboard/interview/${interviewId}/start`)}>
-                    Start
-                  </Button>
-                </Link>
-              </div>
-            )}
           </div>
 
         </div>
       </div>
+      {interviewId && webcamEnable && (
+        <div className="flex justify-end p-6 -mt-24">
+          <Link href={`/dashboard/interview/${interviewId}/start`}>
+            <Button>Start Interview</Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

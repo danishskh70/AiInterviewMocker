@@ -4,30 +4,32 @@ import { NextResponse } from "next/server";
 export async function POST(req) {
   const { jobPosition, jobDescription, jobExperience } = await req.json();
 
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "API key not configured" }, { status: 500 });
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ 
-    model: "gemini-3.5-flash"
+    model: process.env.GEMINI_MODEL || "gemini-1.5-flash"
   });
 
-  const inputPrompt = `Job Details:
+  const inputPrompt = `You are a senior ${jobPosition} interviewer at a top tech company.
+
+Job Details:
 - Position: ${jobPosition}
 - Description: ${jobDescription}
 - Experience Required: ${jobExperience} years
 
-Generate exactly 5 interview questions.
+Generate exactly 5 interview questions tailored to this specific role.
 
-Requirements per question:
-- Question: 3-4 sentences, 80-120 words
-- Answer: 150-200 words, practical example included
-- Focus: Rotate between behavioral, technical, and system design.
+Rules:
+- Rotate types: behavioral, technical, system_design
+- Questions must reflect ${jobExperience} years experience level (not too easy, not too hard)
+- Each answer must include: core concept + practical example + what separates average vs strong candidate
+- No generic questions like "tell me about yourself"
 
-Output: Valid JSON only. No markdown, no explanation.
-Format:
+Output: Valid JSON only. No markdown.
 {
   "questions": [
     {

@@ -13,18 +13,20 @@
     "incremental": true,
     "module": "esnext",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "plugins": [
       {
         "name": "next"
       }
     ],
-    "baseUrl": ".",  // Add this line
-    "paths": {       // Add this block
-      "@/*": ["./*"]
+    "baseUrl": ".", // Add this line
+    "paths": { // Add this block
+      "@/*": [
+        "./*"
+      ]
     }
   },
   "include": [
@@ -33,7 +35,8 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.js",
-    "**/*.jsx"
+    "**/*.jsx",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

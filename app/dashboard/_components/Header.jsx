@@ -24,13 +24,18 @@ const Header = () => {
               Questions
             </li>
           </Link>
+          <Link href={'/dashboard/analytics'}>
+            <li className={`transition-colors ${path === '/dashboard/analytics' ? 'text-black font-bold' : 'text-gray-500 hover:text-black'}`}>
+              Analytics
+            </li>
+          </Link>
           <Link href={'/dashboard/upgrade'}>
             <li className={`transition-colors ${path === '/dashboard/upgrade' ? 'text-black font-bold' : 'text-gray-500 hover:text-black'}`}>
               Upgrade
             </li>
           </Link>
-          <Link href={'/dashboard/howitworks'}>
-            <li className={`transition-colors ${path === '/dashboard/howitworks' ? 'text-black font-bold' : 'text-gray-500 hover:text-black'}`}>
+          <Link href={'/dashboard/how-it-works'}>
+            <li className={`transition-colors ${path === '/dashboard/how-it-works' ? 'text-black font-bold' : 'text-gray-500 hover:text-black'}`}>
               How it Works
             </li>
           </Link>

@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
-  const { question, userAnswer } = await req.json();
+  const { question, userAnswer, idealAnswer } = await req.json();
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -10,9 +10,30 @@ export async function POST(req) {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-1.5-flash" });
 
-  const feedbackPrompt = `Question: ${question}, User answer: ${userAnswer}. Based on the question and user answer, provide a rating (1-10) and feedback for improvement. Output as raw JSON only, with "rating" (number) and "feedback" (string) fields. No markdown or extra text.`;
+  const feedbackPrompt = `You are a senior technical interviewer with 10+ years experience. Give honest, mentor-style feedback.
+
+Question: ${question}
+Ideal Answer (reference only): ${idealAnswer}
+Candidate's Answer: ${userAnswer}
+
+Evaluate by comparing candidate answer against ideal answer.
+
+Feedback string rules:
+- Use "you/your" — talk to candidate directly
+- Sentence 1: one genuine strength
+- Sentence 2: biggest gap vs ideal answer (be specific, not generic)
+- Sentence 3: one actionable fix for next time
+- Max 3 sentences. No bullets inside string.
+
+Scoring rules:
+- rating (1-10): accuracy + depth + relevance vs ideal answer
+- speakingRateScore (1-10): fluency, coherence, penalize rambling/incomplete thoughts
+- fillerWordsCount: exact count of (um, uh, ah, like, you know, so, basically, right) in candidate answer
+
+Output raw JSON only:
+{"rating": number, "feedback": string, "fillerWordsCount": number, "speakingRateScore": number}`;
 
   try {
     const result = await model.generateContent(feedbackPrompt);
