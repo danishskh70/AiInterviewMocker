@@ -20,7 +20,7 @@ import { useRouter } from 'next/navigation';
 
 function AddNewInterview() {
   const [openDailog, setOpenDailog] = useState(false);
-  const [jobPosition, setJobPosition] = useState('');;
+  const [jobPosition, setJobPosition] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [jobExperience, setJobExperience] = useState('');
   const [loading, setLoading] = useState(false);
@@ -85,58 +85,54 @@ function AddNewInterview() {
             <DialogDescription className="text-sm text-muted-foreground">
               Add details about the job position, description, and years of experience.
             </DialogDescription>
-            <div>
-              <form onSubmit={onSubmit}>
-                <div className="mt-7 my-3">
-                  <label className="block text-sm font-medium mb-1">Job Role / Job Position</label>
-                  <Input
-                    placeholder="Ex. Full Stack Developer"
-                    required
-                    value={jobPosition}
-                    onChange={(event) => setJobPosition(event.target.value)}
-                  />
-                </div>
-                <div className="my-3">
-                  <label className="block text-sm font-medium mb-1">Job Description / Tech Stack</label>
-                  <Textarea
-                    placeholder="Ex. React, Angular, Node.js, SQL"
-                    required
-                    value={jobDescription}
-                    onChange={(event) => setJobDescription(event.target.value)}
-                  />
-                </div>
-                <div className="my-3">
-                  <label className="block text-sm font-medium mb-1">Years of Experience</label>
-                  <Input
-                    type="number"
-                    placeholder="Ex. 5"
-                    max="100"
-                    required
-                    value={jobExperience}
-                    onChange={(event) => setJobExperience(event.target.value)}
-                  />
-                </div>
-                <div className="flex gap-5 justify-end mt-6">
-                  <Button type="button" variant="ghost" onClick={() => setOpenDailog(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? (
-                      <>
-                        <LoaderCircle className="animate-spin mr-2" /> Generating...
-                      </>
-                    ) : (
-                      'Start Interview'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </div>
           </DialogHeader>
+          <form onSubmit={onSubmit}>
+            <div className="mt-7 my-3">
+              <label className="block text-sm font-medium mb-1">Job Role / Job Position</label>
+              <Input
+                placeholder="Ex. Full Stack Developer"
+                required
+                value={jobPosition}
+                onChange={(event) => setJobPosition(event.target.value)}
+              />
+            </div>
+            <div className="my-3">
+              <label className="block text-sm font-medium mb-1">Job Description / Tech Stack</label>
+              <Textarea
+                placeholder="Ex. React, Angular, Node.js, SQL"
+                required
+                value={jobDescription}
+                onChange={(event) => setJobDescription(event.target.value)}
+              />
+            </div>
+            <div className="my-3">
+              <label className="block text-sm font-medium mb-1">Years of Experience</label>
+              <Input
+                type="number"
+                placeholder="Ex. 5"
+                max="100"
+                required
+                value={jobExperience}
+                onChange={(event) => setJobExperience(event.target.value)}
+              />
+            </div>
+            <div className="flex gap-5 justify-end mt-6">
+              <Button type="button" variant="ghost" onClick={() => setOpenDailog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? (
+                  <>
+                    <LoaderCircle className="animate-spin mr-2" /> Generating...
+                  </>
+                ) : (
+                  'Start Interview'
+                )}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
-
-
     </div>
   );
 }
