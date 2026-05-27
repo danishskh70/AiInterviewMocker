@@ -59,8 +59,8 @@ function StartInterview({ params }) {
   };
 
   return (
-    <div className='p-6 md:p-10 max-w-7xl mx-auto'>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+    <div className='p-6 max-w-7xl mx-auto'>
+      <div className="grid grid-cols-1 md:grid-cols-[46%_54%] gap-6">
         {/* Question Section */}
         <div className="flex flex-col">
           <QuestionSection
@@ -68,45 +68,21 @@ function StartInterview({ params }) {
             activeQuestionIndex={activeQuestionIndex}
           />
         </div>
-        
+
         {/* Video/Audio Recording Section */}
-        <div className="flex flex-col">
+        <div className="flex flex-col pt-10">
           <RecordAnswerSection
             mockInterviewQuestion={mockInterviewQuestion}
             activeQuestionIndex={activeQuestionIndex}
             interviewdata={interviewdata}
             answeredQuestions={answeredQuestions}
             onAnswerSubmitted={() => setAnsweredQuestions(prev => new Set(prev).add(activeQuestionIndex))}
+            // Pass navigation props
+            setactiveQuestionIndex={setactiveQuestionIndex}
+            mockInterviewQuestionLength={mockInterviewQuestion?.length || 0}
+            mockId={interviewdata?.mockId}
           />
         </div>
-      </div>
-
-      <div className="flex justify-end gap-4 py-8 mt-6 border-t">
-        {activeQuestionIndex > 0 && (
-          <Button onClick={() => setactiveQuestionIndex(activeQuestionIndex - 1)} variant="outline">
-            Previous Question
-          </Button>
-        )}
-        {activeQuestionIndex !== (mockInterviewQuestion?.length || 0) - 1 && (
-          <Button 
-            onClick={() => setactiveQuestionIndex(activeQuestionIndex + 1)} 
-            disabled={!answeredQuestions.has(activeQuestionIndex)}
-          >
-            Next Question
-          </Button>
-        )}
-        {activeQuestionIndex === (mockInterviewQuestion?.length || 0) - 1 && (
-          <Link 
-            href={`/dashboard/interview/${interviewdata?.mockId}/feedback`} 
-            className={answeredQuestions.size < (mockInterviewQuestion?.length || 0) ? "pointer-events-none" : ""}
-          >
-            <Button 
-              disabled={answeredQuestions.size < (mockInterviewQuestion?.length || 0)}
-            >
-              Submit Interview
-            </Button>
-          </Link>
-        )}
       </div>
     </div>
   );
