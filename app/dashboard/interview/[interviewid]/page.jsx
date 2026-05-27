@@ -16,7 +16,6 @@ function Interview({ params }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Handle the Promise in params to safely retrieve interviewId
     (async () => {
       if (params instanceof Promise) {
         const resolvedParams = await params;
@@ -31,7 +30,6 @@ function Interview({ params }) {
     })();
   }, [params]);
 
-  // Fetch interview details by MockId 
   const GetInterviewDetails = async (id) => {
     const result = await db.select().from(MockInterview).where(eq(MockInterview.mockId, id));
     setInterviewdata(result[0] || {});
@@ -39,7 +37,6 @@ function Interview({ params }) {
 
   const handleEnableWebcamAndMic = async () => {
     try {
-      // Request both devices
       await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       setWebcamEnable(true);
     } catch (err) {
@@ -49,13 +46,12 @@ function Interview({ params }) {
   };
 
   return (
-    <div>
-      <div className='my-10 flex justify-center flex-col items-center'>
-        <h2 className='font-bold text-2xl'>Let's Get Started</h2>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-10'>
+    <div className='my-10'>
+      <h1 className='text-3xl font-bold text-center mb-10'>Ready for your Mock Interview?</h1>
+      <div className='grid grid-cols-1 md:grid-cols-[50%_50%] gap-10 mt-10'>
 
-          <div className='flex flex-col my-5 gap-5'>
-            <div className='flex flex-col my-5 gap-5 p-5 rounded-lg border'>
+          <div className='flex flex-col gap-5'>
+            <div className='flex flex-col gap-5 p-5 rounded-lg border'>
               <h2 className='text-lg'><strong>Job Role/Job Position:</strong> {interviewdata.jobPosition || 'Not Available'}</h2>
               <h2 className='text-lg'><strong>Job Description/Tech Stack:</strong> {interviewdata.jobDesc || 'Not Available'}</h2>
               <h2 className='text-lg'><strong>Years of Experience:</strong> {interviewdata.jobExperience || 'Not Available'}</h2>
@@ -72,9 +68,9 @@ function Interview({ params }) {
             </div>
           </div>
 
-          <div className='flex flex-col gap-5 items-center'>
+          <div className='flex flex-col gap-5 items-center justify-between'>
             {webcamEnable ? (
-              <div className="w-full max-w-[500px]">
+              <div className="w-full">
                 <Webcam
                   onUserMedia={() => setWebcamEnable(true)}
                   onUserMediaError={() => setWebcamEnable(false)}
@@ -94,17 +90,17 @@ function Interview({ params }) {
                 </Button>
               </div>
             )}
+            
+            {interviewId && webcamEnable && (
+              <div className="w-full flex justify-end">
+                <Link href={`/dashboard/interview/${interviewId}/start`}>
+                  <Button>Start Interview</Button>
+                </Link>
+              </div>
+            )}
           </div>
 
         </div>
-      </div>
-      {interviewId && webcamEnable && (
-        <div className="flex justify-end p-6">
-          <Link href={`/dashboard/interview/${interviewId}/start`}>
-            <Button>Start Interview</Button>
-          </Link>
-        </div>
-      )}
     </div>
   );
 }

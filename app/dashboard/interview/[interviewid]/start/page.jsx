@@ -59,17 +59,18 @@ function StartInterview({ params }) {
   };
 
   return (
-    <div className='flex flex-col h-screen p-6 -mt-12'>
-      <div className="grid grid-cols-1 md:grid-cols-[40%_60%] gap-10 flex-grow overflow-hidden">
-        {/* Question */}
-        <div className="overflow-y-auto no-scrollbar">
+    <div className='p-6 md:p-10 max-w-7xl mx-auto'>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        {/* Question Section */}
+        <div className="flex flex-col">
           <QuestionSection
             mockInterviewQuestion={mockInterviewQuestion}
             activeQuestionIndex={activeQuestionIndex}
           />
         </div>
-        {/* Video/Audio Recording */}
-        <div className="overflow-y-auto no-scrollbar">
+        
+        {/* Video/Audio Recording Section */}
+        <div className="flex flex-col">
           <RecordAnswerSection
             mockInterviewQuestion={mockInterviewQuestion}
             activeQuestionIndex={activeQuestionIndex}
@@ -79,31 +80,35 @@ function StartInterview({ params }) {
           />
         </div>
       </div>
-      <div className="flex justify-end gap-5 py-4 border-t">
-        {activeQuestionIndex > 0 && <Button onClick={()=>{setactiveQuestionIndex(activeQuestionIndex-1)}}  className='bg-red-500'>Previous Question</Button>}
-        {activeQuestionIndex != mockInterviewQuestion?.length - 1 && 
+
+      <div className="flex justify-end gap-4 py-8 mt-6 border-t">
+        {activeQuestionIndex > 0 && (
+          <Button onClick={() => setactiveQuestionIndex(activeQuestionIndex - 1)} variant="outline">
+            Previous Question
+          </Button>
+        )}
+        {activeQuestionIndex !== (mockInterviewQuestion?.length || 0) - 1 && (
           <Button 
-            onClick={()=>{setactiveQuestionIndex(activeQuestionIndex+1)}} 
-            className='bg-green-500'
+            onClick={() => setactiveQuestionIndex(activeQuestionIndex + 1)} 
             disabled={!answeredQuestions.has(activeQuestionIndex)}
           >
             Next Question
           </Button>
-        }
-        {activeQuestionIndex == mockInterviewQuestion?.length - 1 && 
-          <Link href={`/dashboard/interview/${interviewdata?.mockId}/feedback`} className={answeredQuestions.size < mockInterviewQuestion?.length ? "pointer-events-none" : ""}>
+        )}
+        {activeQuestionIndex === (mockInterviewQuestion?.length || 0) - 1 && (
+          <Link 
+            href={`/dashboard/interview/${interviewdata?.mockId}/feedback`} 
+            className={answeredQuestions.size < (mockInterviewQuestion?.length || 0) ? "pointer-events-none" : ""}
+          >
             <Button 
-              className='bg-blue-500'
-              disabled={answeredQuestions.size < mockInterviewQuestion?.length}
+              disabled={answeredQuestions.size < (mockInterviewQuestion?.length || 0)}
             >
               Submit Interview
             </Button>
           </Link>
-        }
-
+        )}
       </div>
     </div>
-
   );
 }
 

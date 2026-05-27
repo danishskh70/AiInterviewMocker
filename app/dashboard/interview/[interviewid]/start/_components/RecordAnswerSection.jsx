@@ -150,7 +150,7 @@ function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, inter
   return (
     <div className="flex flex-col items-center justify-center p-4">
       {/* Increased Webcam Size Container */}
-      <div className='relative w-full max-w-2xl aspect-video flex flex-col justify-center items-center bg-black rounded-2xl p-1 mt-10 shadow-xl overflow-hidden'>
+      <div className='relative w-full max-w-xl aspect-video flex flex-col justify-center items-center bg-black rounded-xl p-0.5 shadow-md overflow-hidden'>
         <DynamicWebcam 
           style={{
             height: '100%',
@@ -160,13 +160,13 @@ function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, inter
           mirrored={true} 
         />
         {isRecording && (
-          <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+          <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
             REC
           </div>
         )}
       </div>
       
-      <div className="w-full max-w-2xl mt-8 flex flex-col gap-4">
+      <div className="w-full max-w-xl mt-2 flex flex-col gap-2">
         {useManual ? (
           <div className="mt-4">
             <Textarea 
