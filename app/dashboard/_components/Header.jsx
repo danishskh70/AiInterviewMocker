@@ -29,7 +29,7 @@ const Header = () => {
               Analytics
             </li>
           </Link>
-          <Link href={'/dashboard/upgrade'}>
+          <Link href={'/dashboard'}>
             <li className={`transition-colors ${path === '/dashboard/upgrade' ? 'text-black font-bold' : 'text-gray-500 hover:text-black'}`}>
               Upgrade
             </li>
