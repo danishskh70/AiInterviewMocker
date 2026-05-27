@@ -72,34 +72,34 @@ function Interview({ params }) {
             </div>
           </div>
 
-          <div className='flex flex-col gap-5 items-start -mt-20'>
+          <div className='flex flex-col gap-5 items-center'>
             {webcamEnable ? (
-              <div className="mt-[15px]">
+              <div className="w-full max-w-[500px]">
                 <Webcam
                   onUserMedia={() => setWebcamEnable(true)}
                   onUserMediaError={() => setWebcamEnable(false)}
-                  style={{ height: 600, width: 600 }}
+                  style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
                   mirrored={true}
                 />
               </div>
             ) : (
-              <>
-                <WebcamIcon className='h-72 w-full my-7 p-20 bg-secondary rounded-lg border' />
+              <div className='w-full'>
+                <WebcamIcon className='h-72 w-full p-20 bg-secondary rounded-lg border' />
                 <Button
-                  className='w-full hover:bg-gray-200'
-                  variant='ghost'
+                  className='w-full mt-4'
+                  variant='outline'
                   onClick={handleEnableWebcamAndMic}
                 >
                   Enable WebCam and Microphone
                 </Button>
-              </>
+              </div>
             )}
           </div>
 
         </div>
       </div>
       {interviewId && webcamEnable && (
-        <div className="flex justify-end p-6 -mt-24">
+        <div className="flex justify-end p-6">
           <Link href={`/dashboard/interview/${interviewId}/start`}>
             <Button>Start Interview</Button>
           </Link>
