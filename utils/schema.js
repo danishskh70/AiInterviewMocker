@@ -1,28 +1,50 @@
-import { pgTable, serial, text, varchar , integer } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, varchar, integer, boolean, pgEnum, json } from 'drizzle-orm/pg-core';
 import { v4 as uuidv4 } from 'uuid';
+
+export const interviewTypeEnum = pgEnum('interview_type', ['REACT', 'NODEJS', 'SQL', 'SYSTEM_DESIGN', 'JAVA', 'BEHAVIORAL', 'HR', 'FULL_STACK']);
+export const difficultyEnum = pgEnum('difficulty', ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT']);
+export const interviewModeEnum = pgEnum('interview_mode', ['PRACTICE', 'EXAM', 'ADAPTIVE']);
 
 export const MockInterview = pgTable('mock_interviews', {
     id: serial('id').primaryKey(),
-    mockId: varchar('mock_id').default(uuidv4),
-    jsonResponse: text('json_response').notNull(),
+    mockId: varchar('mock_id'),
     jobPosition: varchar('job_position').notNull(),
     jobDesc: text('job_description').notNull(),
     jobExperience: varchar('job_experience').notNull(),
     createdBy: varchar('created_by'),
+    interviewType: interviewTypeEnum('interview_type').default('BEHAVIORAL'),
+    difficulty: difficultyEnum('difficulty').default('INTERMEDIATE'),
+    mode: interviewModeEnum('mode').default('PRACTICE'),
     createdAt: varchar('created_at'),
 });
 
-export const UserAnswer = pgTable('userAnswer', {
+export const InterviewQuestion = pgTable('interview_questions', {
     id: serial('id').primaryKey(),
-    mockIdRef: varchar('mock_id').default(uuidv4),
-    question: varchar('question').notNull(),
-    correctAns: varchar('correctAns'),
-    userAns: text('userAns'),
+    interviewId: integer('interview_id').references(() => MockInterview.id),
+    question: text('question').notNull(),
+    category: varchar('category'),
+    difficulty: difficultyEnum('difficulty'),
+    hint: text('hint'),
+    modelAnswer: text('model_answer'),
+    expectedKeywords: json('expected_keywords'),
+});
+
+export const UserAnswer = pgTable('user_answers', {
+    id: serial('id').primaryKey(),
+    questionId: integer('question_id').references(() => InterviewQuestion.id),
+    userAns: text('user_ans'),
     feedback: text('feedback'),
     rating: varchar('rating'),
-    userEmail: varchar('userEmail'),
-    createdAt: varchar('createdAt'),
-    fillerWordsCount: integer("fillerWordsCount"),
-    speakingRateScore: varchar('speakingRateScore')
-}
-)
+    hintUsed: boolean('hint_used').default(false),
+    userEmail: varchar('user_email'),
+});
+
+export const UserProgress = pgTable('user_progress', {
+    userId: varchar('user_id').primaryKey(),
+    totalInterviews: integer('total_interviews').default(0),
+    totalQuestionsAnswered: integer('total_questions_answered').default(0),
+    averageScore: integer('average_score').default(0),
+    strongestCategory: varchar('strongest_category'),
+    weakestCategory: varchar('weakest_category'),
+    averageDifficulty: difficultyEnum('average_difficulty'),
+});
