@@ -1,8 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { MockInterview } from '../../../utils/schema';
-import { v4 as uuidv4 } from 'uuid';
-import { db } from '../../../utils/db';
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,63 +10,68 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { LoaderCircle } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
-import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LoaderCircle } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
-function AddNewInterview() {
+function AddNewInterview({ weakestCategory }) {
   const [openDailog, setOpenDailog] = useState(false);
-  const [jobPosition, setJobPosition] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
-  const [jobExperience, setJobExperience] = useState('');
+  const [formData, setFormData] = useState({
+    jobPosition: "",
+    jobDesc: "",
+    jobExperience: "",
+    interviewType: "BEHAVIORAL",
+    difficulty: "INTERMEDIATE",
+    mode: "PRACTICE",
+  });
   const [loading, setLoading] = useState(false);
   const { user } = useUser();
-  const [isClient, setIsClient] = useState(false);
-  const router = useRouter()
+  const router = useRouter();
 
-  useEffect(() => {
-    setIsClient(true); // Ensures code only runs on the client
-  }, []);
+  const suggestion = weakestCategory ? `${weakestCategory} Engineer` : null;
+
   const onSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting form data:", formData);
     setLoading(true);
 
     try {
-      const result = await fetch('/api/generate-questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobPosition, jobDescription, jobExperience }),
+      const response = await fetch("/api/generate-questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          userEmail: user?.primaryEmailAddress?.emailAddress,
+        }),
       });
 
-      if (!result.ok) throw new Error("Failed to generate questions");
-      
-      const questions = await result.json();
-      const rawResponseString = JSON.stringify(questions.map(q => ({
-        Question: q.question,
-        Answer: q.answer
-      })));
-
-      const resp = await db.insert(MockInterview).values({
-        mockId: uuidv4(),
-        jsonResponse: rawResponseString,
-        jobPosition: jobPosition,
-        jobDesc: jobDescription,
-        jobExperience: jobExperience,
-        createdBy: user?.primaryEmailAddress?.emailAddress,
-        createdAt: format(new Date(), 'dd-MM-yyyy'),
-      }).returning();
-
-      if (resp) {
-        router.push(`/dashboard/interview/${resp[0]?.mockId}`);
-        setOpenDailog(false);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Response status:", response.status);
+        console.error("Response body:", errorText);
+        throw new Error(`Failed to generate interview: ${response.status}`);
       }
+
+      const { interviewId } = await response.json();
+      router.push(`/dashboard/interview/${interviewId}`);
+      setOpenDailog(false);
     } catch (error) {
-      console.error("Error during operation:", error);
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  const updateForm = (key, value) =>
+    setFormData((prev) => ({ ...prev, [key]: value }));
+
   return (
     <div>
       <div
@@ -81,55 +83,114 @@ function AddNewInterview() {
       <Dialog open={openDailog} onOpenChange={setOpenDailog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Tell us more about the job Interview</DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
-              Add details about the job position, description, and years of experience.
+            <DialogTitle>Setup your Mock Interview</DialogTitle>
+            <DialogDescription>
+              Fill out the details below to create a new mock interview tailored to your role.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={onSubmit}>
-            <div className="mt-7 my-3">
-              <label className="block text-sm font-medium mb-1">Job Role / Job Position</label>
-              <Input
-                placeholder="Ex. Full Stack Developer"
-                required
-                value={jobPosition}
-                onChange={(event) => setJobPosition(event.target.value)}
-              />
+          <form onSubmit={onSubmit} className="space-y-4">
+            {suggestion && (
+              <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
+                <span className="text-amber-700">
+                  Weakest area: <strong>{weakestCategory}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => updateForm("jobPosition", suggestion)}
+                  className="ml-auto text-xs text-primary underline"
+                >
+                  Practice this
+                </button>
+              </div>
+            )}
+            <Input
+              placeholder="Job Position"
+              required
+              value={formData.jobPosition}
+              onChange={(e) => updateForm("jobPosition", e.target.value)}
+            />
+            <Textarea
+              placeholder="Job Description"
+              required
+              value={formData.jobDesc}
+              onChange={(e) => updateForm("jobDesc", e.target.value)}
+            />
+            <Input
+              type="number"
+              placeholder="Years of Experience"
+              required
+              value={formData.jobExperience}
+              onChange={(e) => updateForm("jobExperience", e.target.value)}
+            />
+
+            <div className="grid grid-cols-3 gap-4">
+              <Select
+                value={formData.interviewType}
+                onValueChange={(v) => updateForm("interviewType", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    "REACT",
+                    "NODEJS",
+                    "SQL",
+                    "SYSTEM_DESIGN",
+                    "JAVA",
+                    "BEHAVIORAL",
+                    "HR",
+                    "FULL_STACK",
+                  ].map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={formData.difficulty}
+                onValueChange={(v) => updateForm("difficulty", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"].map(
+                    (d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+              <Select
+                value={formData.mode}
+                onValueChange={(v) => updateForm("mode", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {["PRACTICE", "EXAM", "ADAPTIVE"].map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="my-3">
-              <label className="block text-sm font-medium mb-1">Job Description / Tech Stack</label>
-              <Textarea
-                placeholder="Ex. React, Angular, Node.js, SQL"
-                required
-                value={jobDescription}
-                onChange={(event) => setJobDescription(event.target.value)}
-              />
-            </div>
-            <div className="my-3">
-              <label className="block text-sm font-medium mb-1">Years of Experience</label>
-              <Input
-                type="number"
-                placeholder="Ex. 5"
-                max="100"
-                required
-                value={jobExperience}
-                onChange={(event) => setJobExperience(event.target.value)}
-              />
-            </div>
-            <div className="flex gap-5 justify-end mt-6">
-              <Button type="button" variant="ghost" onClick={() => setOpenDailog(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? (
-                  <>
-                    <LoaderCircle className="animate-spin mr-2" /> Generating...
-                  </>
-                ) : (
-                  'Start Interview'
-                )}
-              </Button>
-            </div>
+
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? (
+                <>
+                  <LoaderCircle className="animate-spin mr-2" /> Creating...
+                </>
+              ) : (
+                "Create Interview"
+              )}
+            </Button>
           </form>
         </DialogContent>
       </Dialog>
