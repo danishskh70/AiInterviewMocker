@@ -1,206 +1,257 @@
-"use client"
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { db } from '@/utils/db';
-import { UserAnswer } from '@/utils/schema';
-import { useUser } from '@clerk/nextjs';
-import { Mic, StopCircle, Pencil } from 'lucide-react';
-import { format } from 'date-fns';
-import React, { useEffect, useState, useRef } from 'react'
-import toast from 'react-hot-toast';
-import dynamic from 'next/dynamic';
-import Link from 'next/link';
+"use client";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { db } from "@/utils/db";
+import { UserAnswer } from "@/utils/schema";
+import { useUser } from "@clerk/nextjs";
+import { Mic, Square, Lock } from "lucide-react";
+import React, { useEffect, useState, useRef } from "react";
+import toast from "react-hot-toast";
+import { eq } from "drizzle-orm";
 
-const DynamicWebcam = dynamic(() => import('react-webcam'), {
-  ssr: false,
-  loading: () => <div className="h-[400px] w-full bg-gray-200 animate-pulse rounded-2xl" />,
-});
-
-function RecordAnswerSection({ mockInterviewQuestion, activeQuestionIndex, interviewdata, answeredQuestions, onAnswerSubmitted, setactiveQuestionIndex, mockInterviewQuestionLength, mockId }) {
-  const [userAnswer, setUserAnswer] = useState('')
-  const [manualAnswer, setManualAnswer] = useState('')
-  const [useManual, setUseManual] = useState(false);
+function RecordAnswerSection({
+  question,
+  activeQuestionIndex,
+  interviewData,
+  setactiveQuestionIndex,
+  questionsLength,
+  answeredQuestions,
+  setAnsweredQuestions,
+  onNextQuestion,
+}) {
+  const [userAnswer, setUserAnswer] = useState("");
+  const [manualAnswer, setManualAnswer] = useState("");
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
-  const [isStarting, setIsStarting] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef(null);
+  const canvasRef = useRef(null);
+  const analyserRef = useRef(null);
+  const animationRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const streamRef = useRef(null);
 
-  const isAnswered = answeredQuestions?.has(activeQuestionIndex);
+  const isAnswered = answeredQuestions.has(activeQuestionIndex);
 
   useEffect(() => {
     return () => recognitionRef.current?.stop();
   }, []);
 
   useEffect(() => {
-    setUserAnswer('');
-    setManualAnswer('');
+    setUserAnswer("");
+    setManualAnswer("");
     if (isRecording) stopSpeechToText();
   }, [activeQuestionIndex]);
 
-  const startSpeechToText = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      toast.error("Browser doesn't support speech recognition");
-      return;
-    }
+  const startSpeechToText = async () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.continuous = true;
-    recognitionRef.current.interimResults = false;
-    recognitionRef.current.lang = 'en-US';
-
+    recognitionRef.current.lang = "en-US";
     recognitionRef.current.onstart = () => setIsRecording(true);
-    recognitionRef.current.onend = () => setIsRecording(false);
-    recognitionRef.current.onerror = (e) => {
-      if (e.error === 'no-speech') return;
-      console.error("Recognition error:", e.error);
-      toast.error("Mic error: " + e.error);
+    recognitionRef.current.onend = () => {
       setIsRecording(false);
+      stopWaveform();
     };
     recognitionRef.current.onresult = (e) => {
       const transcript = Array.from(e.results)
-        .map(r => r[0].transcript).join(' ');
-      setUserAnswer(prev => prev + ' ' + transcript);
+        .map((r) => r[0].transcript)
+        .join(" ");
+      setUserAnswer((prev) => prev + " " + transcript);
     };
 
-    recognitionRef.current.start();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      startWaveform(stream);
+      recognitionRef.current.start();
+    } catch (err) {
+      console.error("Microphone access denied:", err);
+      toast.error("Microphone access denied");
+    }
   };
 
-  const stopSpeechToText = () => {
-    recognitionRef.current?.stop();
-  };
+  const stopSpeechToText = () => recognitionRef.current?.stop();
+
+  async function startWaveform(stream) {
+    streamRef.current = stream;
+    audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    analyserRef.current = audioCtxRef.current.createAnalyser();
+    analyserRef.current.fftSize = 256;
+
+    const source = audioCtxRef.current.createMediaStreamSource(stream);
+    source.connect(analyserRef.current);
+
+    const bufferLength = analyserRef.current.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+      animationRef.current = requestAnimationFrame(draw);
+      analyserRef.current.getByteFrequencyData(dataArray);
+
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const barWidth = (canvas.width / bufferLength) * 2.5;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * canvas.height;
+        ctx.fillStyle = `rgb(99, 102, 241)`;
+        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+        x += barWidth + 1;
+      }
+    }
+
+    draw();
+  }
+
+  function stopWaveform() {
+    cancelAnimationFrame(animationRef.current);
+    audioCtxRef.current?.close();
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
 
   const HandleSubmit = async () => {
-    const finalAnswer = useManual ? manualAnswer : userAnswer;
+    const finalAnswer = userAnswer || manualAnswer;
     if (finalAnswer.length < 10) {
-      toast.error("Answer is too short!");
+      toast.error("Answer too short");
       return;
     }
-    await UpdateUserAnswer(finalAnswer);
-  };
 
-  const UpdateUserAnswer = async (answerToSave) => {
     setLoading(true);
-
     try {
-      const result = await fetch('/api/generate-feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // 1. Get Feedback
+      const result = await fetch("/api/generate-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: mockInterviewQuestion[activeQuestionIndex]?.Question,
-          userAnswer: answerToSave,
-          idealAnswer: mockInterviewQuestion[activeQuestionIndex]?.Answer
+          question: question?.question,
+          userAnswer: finalAnswer,
+          modelAnswer: question?.modelAnswer,
+          expectedKeywords: question?.expectedKeywords,
         }),
       });
 
-      if (!result.ok) {
-        throw new Error(`Failed to generate feedback`);
-      }
-
+      if (!result.ok) throw new Error("Failed to generate feedback");
       const feedbackData = await result.json();
 
+      // 2. Save to DB
+      await db.delete(UserAnswer).where(eq(UserAnswer.questionId, question.id));
       await db.insert(UserAnswer).values({
-        mockIdRef: interviewdata.mockId,
-        question: mockInterviewQuestion[activeQuestionIndex]?.Question,
-        correctAns: mockInterviewQuestion[activeQuestionIndex]?.Answer,
-        userAns: answerToSave,
-        feedback: feedbackData.feedback,
-        rating: feedbackData.rating,
-        fillerWordsCount: feedbackData.fillerWordsCount,
-        speakingRateScore: feedbackData.speakingRateScore,
+        questionId: question.id,
+        userAns: finalAnswer,
+        feedback: JSON.stringify(feedbackData), // Store as JSON string for now
+        rating: String(feedbackData.rating || "0"),
         userEmail: user?.primaryEmailAddress?.emailAddress,
-        createdAt: format(new Date(), 'dd-MM-yyyy')
       });
 
-      toast.success("Answer recorded!");
-      setUserAnswer(''); 
-      setManualAnswer('');
-      onAnswerSubmitted();
-    } catch (error) {
-      console.error("Error processing answer:", error);
-      toast.error("Failed to process feedback.");
+      setAnsweredQuestions(new Set(answeredQuestions.add(activeQuestionIndex)));
+      toast.success("Answer submitted!");
+      onNextQuestion(); // Auto-next!
+    } catch (e) {
+      console.error("Error submitting answer:", e);
+      toast.error(e.message || "Failed to submit");
     } finally {
       setLoading(false);
     }
   };
 
-  const StartStopRecording = async () => {
-    if (isStarting) return;
-    if (!isRecording) {
-      try {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch (err) {
-        toast.error("Mic blocked");
-        return;
-      }
-      setIsStarting(true);
-      startSpeechToText();
-      setTimeout(() => setIsStarting(false), 1000);
-    } else {
-      stopSpeechToText();
-    }
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center">
-      <div className='relative w-full max-w-xl aspect-video flex flex-col justify-center items-center bg-black rounded-xl p-0.5 shadow-md overflow-hidden'>
-        <DynamicWebcam 
-          style={{ height: '100%', width: '100%', objectFit: 'cover' }}
-          mirrored={true} 
-        />
-        {isRecording && (
-          <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
-            REC
-          </div>
-        )}
-      </div>
-      
-      <div className="w-full max-w-xl mt-2 flex flex-col gap-2">
-        {useManual ? (
-          <div className="mt-4">
-            <Textarea 
-              disabled={isAnswered}
-              placeholder="Type your answer here..."
-              value={manualAnswer}
-              onChange={(e) => setManualAnswer(e.target.value)}
-              className="h-32"
-            />
-            <div className="flex gap-3 mt-3">
-              <Button onClick={HandleSubmit} disabled={loading || isAnswered}>Submit</Button>
-              <Button variant="ghost" onClick={() => setUseManual(false)}>Cancel</Button>
-            </div>
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-full flex flex-col">
+      <Tabs defaultValue="voice" className="flex-1">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="voice" disabled={isAnswered}>
+            Voice Input
+          </TabsTrigger>
+          <TabsTrigger value="text" disabled={isAnswered}>
+            Text Input
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent
+          value="voice"
+          className="flex flex-col items-center justify-center py-10"
+        >
+          <canvas
+            ref={canvasRef}
+            width={300}
+            height={60}
+            className={`rounded-md mb-4 ${
+              isRecording ? "opacity-100" : "opacity-0"
+            } transition-opacity`}
+          />
+          <Button
+            variant={isRecording ? "destructive" : "default"}
+            onClick={() =>
+              isRecording ? stopSpeechToText() : startSpeechToText()
+            }
+            disabled={isAnswered || loading}
+          >
+            {isRecording ? (
+              <Square size={18} className="mr-2" />
+            ) : (
+              <Mic size={18} className="mr-2" />
+            )}
+            {isRecording ? "Stop Recording" : "Start Recording"}
+          </Button>
+          <p className="mt-4 text-xs text-gray-500 min-h-20 max-h-40 overflow-y-auto">
+            {userAnswer || "Transcript will appear here..."}
+          </p>
+        </TabsContent>
+
+        <TabsContent value="text" className="h-64 flex flex-col">
+          <Textarea
+            className="flex-1"
+            placeholder="Type your answer..."
+            value={manualAnswer}
+            onChange={(e) => setManualAnswer(e.target.value)}
+            disabled={isAnswered}
+            maxLength={1000}
+          />
+          <p className="text-xs text-gray-400 mt-2 text-right">
+            {manualAnswer.length}/1000 characters
+          </p>
+        </TabsContent>
+      </Tabs>
+
+      <div className="flex items-center justify-between mt-6 pt-6 border-t">
+        {isAnswered ? (
+          <div className="flex items-center gap-2 text-green-600 font-bold text-xs">
+            <Lock size={16} /> ANSWER LOCKED
           </div>
         ) : (
-          <Button
-            disabled={loading || isAnswered}
-            className={`h-12 w-full text-lg font-semibold ${isRecording ? 'bg-red-600' : 'bg-blue-600'}`}
-            onClick={StartStopRecording}
-          >
-            {isAnswered ? "Answered" : isRecording ? "Stop Recording" : "Record Answer"}
-          </Button>
-        )}
-
-        {!useManual && !isAnswered && (
-          <Button variant="outline" className="text-muted-foreground w-full" onClick={() => setUseManual(true)}>
-            <Pencil className="mr-2 h-4 w-4" /> Type Manually
+          <Button onClick={HandleSubmit} disabled={loading} className="w-full">
+            SUBMIT ANSWER
           </Button>
         )}
       </div>
 
-      <div className="w-full max-w-xl flex justify-end gap-2 mt-4">
-        {activeQuestionIndex > 0 && (
-          <Button onClick={() => setactiveQuestionIndex(activeQuestionIndex - 1)} variant="outline">Previous</Button>
-        )}
-        {activeQuestionIndex !== mockInterviewQuestionLength - 1 && (
-          <Button onClick={() => setactiveQuestionIndex(activeQuestionIndex + 1)} disabled={!answeredQuestions.has(activeQuestionIndex)}>Next</Button>
-        )}
-        {activeQuestionIndex === mockInterviewQuestionLength - 1 && (
-          <Link href={`/dashboard/interview/${mockId}/feedback`} className={answeredQuestions.size < mockInterviewQuestionLength ? "pointer-events-none" : ""}>
-            <Button disabled={answeredQuestions.size < mockInterviewQuestionLength}>Submit</Button>
-          </Link>
-        )}
+      <div className="flex justify-between mt-8">
+        <Button
+          onClick={() => setactiveQuestionIndex(activeQuestionIndex - 1)}
+          disabled={activeQuestionIndex === 0}
+          variant="ghost"
+        >
+          Previous
+        </Button>
+        <Button
+          onClick={() => setactiveQuestionIndex(activeQuestionIndex + 1)}
+          disabled={activeQuestionIndex === questionsLength - 1}
+          variant="ghost"
+        >
+          Next
+        </Button>
       </div>
     </div>
-  )
+  );
 }
-export default RecordAnswerSection
+export default RecordAnswerSection;

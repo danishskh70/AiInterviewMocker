@@ -1,12 +1,24 @@
-import { Lightbulb, Volume2, PauseCircle, PlayCircle, Square } from 'lucide-react'
-import React, { useState, useEffect } from 'react'
+import {
+  Volume2,
+  PauseCircle,
+  PlayCircle,
+  Square,
+  ChevronDown,
+} from "lucide-react";
+import React, { useState, useEffect } from "react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
-function QuestionSection({ mockInterviewQuestion, activeQuestionIndex }) {
+function QuestionSection({ questions, activeQuestionIndex, mode, answeredQuestions }) {
   const [isPaused, setIsPaused] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  const activeQuestion = questions[activeQuestionIndex];
+
   useEffect(() => {
-    // Stop speech when question changes
     window.speechSynthesis.cancel();
     setIsPlaying(false);
     setIsPaused(false);
@@ -22,62 +34,63 @@ function QuestionSection({ mockInterviewQuestion, activeQuestionIndex }) {
         setIsPaused(true);
       }
     } else {
-      const text = mockInterviewQuestion[activeQuestionIndex]?.Question;
-      if ('speechSynthesis' in window) {
-        const speech = new SpeechSynthesisUtterance(text);
+      if ("speechSynthesis" in window) {
+        const speech = new SpeechSynthesisUtterance(activeQuestion?.question);
         speech.onend = () => setIsPlaying(false);
         window.speechSynthesis.speak(speech);
         setIsPlaying(true);
-      } else {
-        alert('Sorry, your browser doesn’t support text-to-speech.');
       }
     }
   };
 
-  const stopSpeech = () => {
-    window.speechSynthesis.cancel();
-    setIsPlaying(false);
-    setIsPaused(false);
-  };
-
   return (
-    <div>
-      <div className="p-5 border rounded-lg my-10">
-        <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5'>
-          {Array.isArray(mockInterviewQuestion) && mockInterviewQuestion.map((item, index) => (
-            <div key={index}>
-              <h2 className={`text-xs md:sm text-center p-2 ${activeQuestionIndex === index && 'bg-teal-400 text-white'} bg-secondary border rounded-full cursor-pointer`}>
-                Question No. #{index + 1}
-              </h2>
-            </div>
-          ))}
-        </div>
-        <h2 className='my-5 text-md md:text-lg'>{mockInterviewQuestion[activeQuestionIndex]?.Question}</h2>
-        <div className='flex items-center gap-3'>
-          {isPlaying ? (
-            <>
-              {isPaused ? 
-                <PlayCircle className='cursor-pointer' onClick={toggleSpeech} /> : 
-                <PauseCircle className='cursor-pointer' onClick={toggleSpeech} />
-              }
-              <Square className='cursor-pointer' onClick={stopSpeech} />
-            </>
-          ) : (
-            <Volume2 className='cursor-pointer' onClick={toggleSpeech} />
-          )}
-        </div>
-        <div className='border rounded-lg p-5 bg-blue-100 mt-2' >
-          <h2 className='flex gap-2 items-center text-blue-500 '>
-            <Lightbulb />
-            <strong>Note : </strong>
-          </h2>
-          <h2 className='text-sm text-blue-500 my-2'>• <strong>Recommended:</strong> Hit <strong>Record</strong> to speak your answer clearly.<br /> • <strong>Alternative:</strong> Use the <strong>Type manually</strong> option if you prefer to write your response.<br /> • Don't take long breaks, as the recording cuts off after a short quiet spell.<br /> • Press <strong>Next Question</strong> to keep the interview moving smoothly.<br /> • Give short, to-the-point answers to show you're clear and sure of yourself.<br /> • Stay cool—the more you practice the more confident you'll be!</h2>
-        </div>
+    <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+      <div className="flex gap-2 mb-8 flex-wrap">
+        {questions.map((_, index) => (
+          <div
+            key={index}
+            className={`w-8 h-8 flex items-center justify-center text-xs font-bold rounded-full transition-colors 
+              ${activeQuestionIndex === index ? "bg-black text-white" : 
+                answeredQuestions.has(index) ? "bg-green-500 text-white" : "bg-gray-200 text-gray-600"}`}
+          >
+            {index + 1}
+          </div>
+        ))}
       </div>
+
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-gray-900 leading-snug">
+          {activeQuestion?.question}
+        </h2>
+        <button onClick={toggleSpeech} className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-black">
+          {isPlaying ? (isPaused ? <PlayCircle size={16}/> : <PauseCircle size={16}/>) : <Volume2 size={16}/>}
+          {isPlaying ? (isPaused ? "RESUME" : "PAUSE") : "LISTEN"}
+        </button>
+      </div>
+
+      {mode === "PRACTICE" && (
+        <div className="mt-8 space-y-4">
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-black">
+              View Hint <ChevronDown size={14}/>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3 p-4 bg-gray-50 rounded-lg text-xs text-gray-600">
+              {activeQuestion?.hint}
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center justify-between w-full text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-black">
+              Model Answer <ChevronDown size={14}/>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3 p-4 bg-gray-50 rounded-lg text-xs text-gray-600">
+              {activeQuestion?.modelAnswer}
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+      )}
     </div>
-  )
+  );
 }
 
-export default QuestionSection
-
- 
+export default QuestionSection;
