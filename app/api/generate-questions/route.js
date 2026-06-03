@@ -1,72 +1,54 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { chatSession } from "@/utils/GeminiAiModal";
+import { interviewInputSchema } from "../../../lib/validations";
+import { createInterviewService, addQuestionsToInterview } from "../../../lib/services/interviewService";
 
 export async function POST(req) {
-  const { jobPosition, jobDescription, jobExperience } = await req.json();
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: "API key not configured" }, { status: 500 });
-  }
-
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ 
-    model: process.env.GEMINI_MODEL || "gemini-1.5-flash"
-  });
-
-  const inputPrompt = `You are a senior ${jobPosition} interviewer at a top tech company.
-
-Job Details:
-- Position: ${jobPosition}
-- Description: ${jobDescription}
-- Experience Required: ${jobExperience} years
-
-Generate exactly 5 interview questions tailored to this specific role.
-
-Rules:
-- Rotate types: behavioral, technical, system_design
-- Questions must reflect ${jobExperience} years experience level (not too easy, not too hard)
-- Each answer must include: core concept + practical example + what separates average vs strong candidate
-- No generic questions like "tell me about yourself"
-
-Output: Valid JSON only. No markdown.
-{
-  "questions": [
-    {
-      "question": "...",
-      "answer": "...",
-      "type": "behavioral|technical|system_design"
-    }
-  ]
-}`;
-
   try {
-    console.log("Input Prompt:", inputPrompt);
-    const result = await model.generateContent(inputPrompt);
-    const response = await result.response;
-    const text = response.text();
+    const body = await req.json();
+    console.log("API Body received:", body);
     
-    console.log("Raw response from Gemini:", text);
+    const validatedData = interviewInputSchema.parse(body);
+    console.log("Validated Data:", validatedData);
 
-    if (!text) {
-       throw new Error("Gemini returned empty text.");
-    }
+    const prompt = `Generate 5 high-quality interview questions for a ${validatedData.jobPosition} role.
+    Role Description: ${validatedData.jobDesc}
+    Experience: ${validatedData.jobExperience}
+    Difficulty: ${validatedData.difficulty}
+    Interview Type: ${validatedData.interviewType}
     
-    const cleanJson = text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
+    Return ONLY a valid JSON object with the following structure. No markdown formatting:
+    {
+      "questions": [{
+        "question": "string",
+        "category": "string",
+        "difficulty": "${validatedData.difficulty}",
+        "hint": "string",
+        "modelAnswer": "string",
+        "expectedKeywords": ["string", "string"]
+      }]
+    }`;
+
+    console.log("Prompt generated, calling Gemini...");
+    const result = await chatSession.generateContent(prompt);
+    const responseText = result.response.text();
+    console.log("Gemini Response:", responseText);
     
-    // Check if it's a valid JSON string
-    try {
-        const parsed = JSON.parse(cleanJson);
-        return NextResponse.json(parsed.questions || parsed);
-    } catch (e) {
-        console.error("Failed to parse JSON. Raw text:", cleanJson);
-        return NextResponse.json({ error: "Invalid JSON format from AI", details: cleanJson }, { status: 500 });
-    }
+    const cleanJson = responseText.replace(/```json\s*/g, '').replace(/```/g, '').trim();
+    const jsonResponse = JSON.parse(cleanJson);
+    console.log("JSON parsed successfully");
+
+    // Persist to DB using service
+    console.log("Persisting to DB...");
+    const interview = await createInterviewService({ ...validatedData, userEmail: body.userEmail });
+    console.log("Interview created:", interview.id);
+    
+    await addQuestionsToInterview(interview.id, jsonResponse.questions);
+    console.log("Questions persisted");
+
+    return NextResponse.json({ interviewId: interview.mockId });
   } catch (error) {
-    console.error("DETAILED AI Generation Error:", {
-      message: error.message,
-      stack: error.stack,
-    });
-    return NextResponse.json({ error: "Failed to generate questions", details: error.message }, { status: 500 });
+    console.error("CRITICAL API ERROR:", error);
+    return NextResponse.json({ error: "Failed to generate interview", details: error.message }, { status: 500 });
   }
 }

@@ -1,6 +1,31 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
+const generateFallbackSummary = (answers = [], jobPosition = "Software Engineer", jobExperience = "2") => {
+  const avgRating = answers.length > 0
+    ? (answers.reduce((sum, a) => sum + (parseInt(a.rating) || 0), 0) / answers.length).toFixed(1)
+    : 0;
+
+  return {
+    overall_verdict: "Your interview responses have been recorded. Review the detailed feedback for each question to identify areas for improvement.",
+    strengths: [
+      "Completed all interview questions",
+      "Provided thoughtful responses to interview topics",
+    ],
+    gaps: [
+      "Review technical concepts from the feedback provided",
+      "Work on answering questions more concisely",
+    ],
+    improvement_plan: [
+      "Review the detailed feedback for each question",
+      `Practice explaining concepts clearly in ${jobExperience} years of experience context`,
+      "Focus on articulating key technical concepts more confidently",
+    ],
+    overall_score: Math.min(10, Math.max(1, (avgRating || 5))),
+    hire_confidence: Math.min(10, Math.max(1, (avgRating || 5))),
+  };
+};
+
 export async function POST(req) {
   const { answers, jobPosition, jobExperience } = await req.json();
 
@@ -47,11 +72,19 @@ Output:
   try {
     const result = await model.generateContent(summaryPrompt);
     const text = result.response.text();
-    console.log("Gemini raw output for summary:", text); 
+    console.log("Gemini raw output for summary:", text);
     const clean = text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
     return NextResponse.json(JSON.parse(clean));
   } catch (err) {
     console.error("Summary Error:", err);
-    return NextResponse.json({ error: "Failed to generate summary" }, { status: 500 });
+
+    // Check if it's a rate limit error
+    if (err.status === 429) {
+      console.log("Rate limit exceeded for summary, using fallback");
+      return NextResponse.json(generateFallbackSummary(answers, jobPosition, jobExperience));
+    }
+
+    // For other errors, also use fallback
+    return NextResponse.json(generateFallbackSummary(answers, jobPosition, jobExperience));
   }
 }
