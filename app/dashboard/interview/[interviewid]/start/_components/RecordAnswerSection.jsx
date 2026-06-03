@@ -13,7 +13,7 @@ import { eq } from "drizzle-orm";
 
 // Timer constants — no magic numbers
 const EDIT_TIMER_TOTAL = 15;
-const EDIT_TIMER_WARN  = 10;
+const EDIT_TIMER_WARN = 10;
 const EDIT_TIMER_DANGER = 5;
 
 function RecordAnswerSection({
@@ -26,21 +26,21 @@ function RecordAnswerSection({
   setAnsweredQuestions,
   onNextQuestion,
 }) {
-  const [userAnswer, setUserAnswer]   = useState("");
+  const [userAnswer, setUserAnswer] = useState("");
   const [manualAnswer, setManualAnswer] = useState("");
-  const [loading, setLoading]         = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [editTimer, setEditTimer]     = useState(EDIT_TIMER_TOTAL);
-  const [showTimer, setShowTimer]     = useState(false);
+  const [editTimer, setEditTimer] = useState(EDIT_TIMER_TOTAL);
+  const [showTimer, setShowTimer] = useState(false);
 
   const { user } = useUser();
   const recognitionRef = useRef(null);
-  const canvasRef      = useRef(null);
-  const analyserRef    = useRef(null);
-  const animationRef   = useRef(null);
-  const audioCtxRef    = useRef(null);
-  const streamRef      = useRef(null);
-  const timerRef       = useRef(null);
+  const canvasRef = useRef(null);
+  const analyserRef = useRef(null);
+  const animationRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const streamRef = useRef(null);
+  const timerRef = useRef(null);
 
   const isAnswered = answeredQuestions.has(activeQuestionIndex);
 
@@ -49,15 +49,15 @@ function RecordAnswerSection({
     editTimer > EDIT_TIMER_WARN
       ? "bg-zinc-900"
       : editTimer > EDIT_TIMER_DANGER
-      ? "bg-amber-400"
-      : "bg-red-500";
+        ? "bg-amber-400"
+        : "bg-red-500";
 
   const timerTextColor =
     editTimer > EDIT_TIMER_WARN
       ? "text-zinc-600"
       : editTimer > EDIT_TIMER_DANGER
-      ? "text-amber-600"
-      : "text-red-600";
+        ? "text-amber-600"
+        : "text-red-600";
 
   useEffect(() => {
     return () => recognitionRef.current?.stop();
@@ -78,9 +78,7 @@ function RecordAnswerSection({
       setShowTimer(false);
       return;
     }
-    timerRef.current = setTimeout(
-      () => setEditTimer((prev) => prev - 1), 1000
-    );
+    timerRef.current = setTimeout(() => setEditTimer((prev) => prev - 1), 1000);
     return () => clearTimeout(timerRef.current);
   }, [showTimer, editTimer]);
 
@@ -90,8 +88,11 @@ function RecordAnswerSection({
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.continuous = true;
     recognitionRef.current.lang = "en-US";
-    recognitionRef.current.onstart  = () => setIsRecording(true);
-    recognitionRef.current.onend    = () => { setIsRecording(false); stopWaveform(); };
+    recognitionRef.current.onstart = () => setIsRecording(true);
+    recognitionRef.current.onend = () => {
+      setIsRecording(false);
+      stopWaveform();
+    };
     recognitionRef.current.onresult = (e) => {
       const transcript = Array.from(e.results)
         .map((r) => r[0].transcript)
@@ -112,8 +113,10 @@ function RecordAnswerSection({
   const stopSpeechToText = () => recognitionRef.current?.stop();
 
   async function startWaveform(stream) {
-    streamRef.current  = stream;
-    audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    streamRef.current = stream;
+    audioCtxRef.current = new (
+      window.AudioContext || window.webkitAudioContext
+    )();
     analyserRef.current = audioCtxRef.current.createAnalyser();
     analyserRef.current.fftSize = 256;
 
@@ -121,7 +124,7 @@ function RecordAnswerSection({
     source.connect(analyserRef.current);
 
     const bufferLength = analyserRef.current.frequencyBinCount;
-    const dataArray    = new Uint8Array(bufferLength);
+    const dataArray = new Uint8Array(bufferLength);
 
     function draw() {
       animationRef.current = requestAnimationFrame(draw);
@@ -173,9 +176,9 @@ function RecordAnswerSection({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question:         question?.question,
-          userAnswer:       finalAnswer,
-          modelAnswer:      question?.modelAnswer,
+          question: question?.question,
+          userAnswer: finalAnswer,
+          modelAnswer: question?.modelAnswer,
           expectedKeywords: question?.expectedKeywords,
         }),
       });
@@ -186,10 +189,10 @@ function RecordAnswerSection({
       await db.delete(UserAnswer).where(eq(UserAnswer.questionId, question.id));
       await db.insert(UserAnswer).values({
         questionId: question.id,
-        userAns:    finalAnswer,
-        feedback:   JSON.stringify(feedbackData),
-        rating:     String(feedbackData.rating || "0"),
-        userEmail:  user?.primaryEmailAddress?.emailAddress,
+        userAns: finalAnswer,
+        feedback: JSON.stringify(feedbackData),
+        rating: String(feedbackData.rating || "0"),
+        userEmail: user?.primaryEmailAddress?.emailAddress,
       });
 
       setAnsweredQuestions(new Set(answeredQuestions.add(activeQuestionIndex)));
@@ -206,7 +209,6 @@ function RecordAnswerSection({
 
   return (
     <div className="bg-white border border-zinc-200 rounded-xl p-6 flex flex-col gap-6">
-
       <Tabs defaultValue="voice" className="flex-1">
         <TabsList className="grid w-full grid-cols-2 bg-zinc-100 rounded-lg p-1">
           <TabsTrigger
@@ -226,7 +228,10 @@ function RecordAnswerSection({
         </TabsList>
 
         {/* Voice tab */}
-        <TabsContent value="voice" className="flex flex-col items-center gap-4 py-8">
+        <TabsContent
+          value="voice"
+          className="flex flex-col items-center gap-4 py-8"
+        >
           <canvas
             ref={canvasRef}
             width={300}
@@ -238,7 +243,9 @@ function RecordAnswerSection({
 
           <Button
             variant={isRecording ? "outline" : "default"}
-            onClick={() => isRecording ? stopSpeechToText() : startSpeechToText()}
+            onClick={() =>
+              isRecording ? stopSpeechToText() : startSpeechToText()
+            }
             disabled={isAnswered || loading}
             className={
               isRecording
@@ -246,10 +253,15 @@ function RecordAnswerSection({
                 : "bg-zinc-900 text-white hover:bg-zinc-700 flex items-center gap-2"
             }
           >
-            {isRecording
-              ? <><Square className="h-4 w-4" /> Stop Recording</>
-              : <><Mic className="h-4 w-4" /> Start Recording</>
-            }
+            {isRecording ? (
+              <>
+                <Square className="h-4 w-4" /> Stop Recording
+              </>
+            ) : (
+              <>
+                <Mic className="h-4 w-4" /> Start Recording
+              </>
+            )}
           </Button>
 
           <p className="text-xs text-zinc-500 text-center min-h-16 max-h-32 overflow-y-auto px-2">

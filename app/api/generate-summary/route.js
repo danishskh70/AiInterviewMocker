@@ -8,24 +8,17 @@ const generateFallbackSummary = (answers = [], jobPosition = "Software Engineer"
   const avgRating = answers.length > 0
     ? (answers.reduce((sum, a) => sum + (parseInt(a.rating) || 0), 0) / answers.length).toFixed(1)
     : 0;
-
   return {
-    overall_verdict: "Your interview responses have been recorded. Review the detailed feedback for each question to identify areas for improvement.",
-    strengths: [
-      "Completed all interview questions",
-      "Provided thoughtful responses to interview topics",
-    ],
-    gaps: [
-      "Review technical concepts from the feedback provided",
-      "Work on answering questions more concisely",
-    ],
+    overall_verdict: "Summary unavailable — Gemini quota exceeded. Review individual question feedback below.",
+    strengths: ["Completed all interview questions", "Provided responses to all topics"],
+    gaps: ["Review technical concepts from feedback", "Work on answering more concisely"],
     improvement_plan: [
-      "Review the detailed feedback for each question",
-      `Practice explaining concepts clearly in ${jobExperience} years of experience context`,
-      "Focus on articulating key technical concepts more confidently",
+      "Review detailed feedback for each question",
+      `Practice explaining concepts in ${jobExperience} years of experience context`,
+      "Focus on articulating technical concepts more confidently",
     ],
-    overall_score: Math.min(10, Math.max(1, (avgRating || 5))),
-    hire_confidence: Math.min(10, Math.max(1, (avgRating || 5))),
+    overall_score: Math.min(10, Math.max(1, parseFloat(avgRating) || 5)),
+    hire_confidence: Math.min(10, Math.max(1, parseFloat(avgRating) || 5)),
   };
 };
 
@@ -33,16 +26,18 @@ export async function POST(req) {
   const { interviewId, answers, jobPosition, jobExperience } = await req.json();
 
   // 1. Check if summary already exists
-  const [existing] = await db
-    .select({ summary: MockInterview.summary })
-    .from(MockInterview)
-    .where(eq(MockInterview.mockId, interviewId));
+  if (interviewId) {
+    const [existing] = await db
+      .select({ summary: MockInterview.summary })
+      .from(MockInterview)
+      .where(eq(MockInterview.mockId, interviewId));
 
-  if (existing?.summary) {
-    return NextResponse.json(existing.summary);
+    if (existing?.summary) {
+      return NextResponse.json(existing.summary);
+    }
   }
 
-  // 2. If not, generate
+  // 2. Generate
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "API key not configured" }, { status: 500 });
@@ -89,35 +84,32 @@ Output:
     const clean = text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
     const summaryData = JSON.parse(clean);
 
-    // 3. Save summary
-    await db.update(MockInterview)
-      .set({ summary: summaryData })
-      .where(eq(MockInterview.mockId, interviewId));
+    // 3. Save summary + tasks
+    if (interviewId) {
+      await db.update(MockInterview)
+        .set({ summary: summaryData })
+        .where(eq(MockInterview.mockId, interviewId));
 
-    // 4. Save tasks
-    if (summaryData.improvement_plan?.length > 0) {
-      // Fetch ID first (await is fine here)
-      const rows = await db.select({ id: MockInterview.id }).from(MockInterview).where(eq(MockInterview.mockId, interviewId));
-      const interviewRow = rows[0];
-      
-      if (interviewRow) {
-        // Map *synchronously* to an array of objects
-        const tasksToInsert = summaryData.improvement_plan.map(text => ({
-          interviewId: interviewRow.id,
-          text
-        }));
-        
-        // Insert in one go
-        await db.insert(InterviewTask).values(tasksToInsert);
+      if (summaryData.improvement_plan?.length > 0) {
+        const rows = await db.select({ id: MockInterview.id }).from(MockInterview).where(eq(MockInterview.mockId, interviewId));
+        const interviewRow = rows[0];
+        if (interviewRow) {
+          const tasksToInsert = summaryData.improvement_plan.map(text => ({
+            interviewId: interviewRow.id,
+            text
+          }));
+          await db.insert(InterviewTask).values(tasksToInsert);
+        }
       }
     }
 
     return NextResponse.json(summaryData);
   } catch (err) {
     console.error("Summary Error:", err);
+    // status 200 so frontend doesn't throw — isFallback flag signals quota issue
     return NextResponse.json(
-        { error: "Failed to generate summary", details: err.message, ...generateFallbackSummary(answers, jobPosition, jobExperience), isFallback: true },
-        { status: 500 }
+      { ...generateFallbackSummary(answers, jobPosition, jobExperience), isFallback: true },
+      { status: 200 }
     );
   }
 }

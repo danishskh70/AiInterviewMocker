@@ -110,6 +110,7 @@ function Feedback() {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
+          interviewId:   interviewid,
           answers:       data,
           jobPosition:   metadata?.jobPosition   ?? "Software Engineer",
           jobExperience: metadata?.jobExperience ?? "0",
@@ -133,11 +134,13 @@ function Feedback() {
       setSummaryLoading(false);
     }
   };
-
   const toggleTask = async (taskId, current) => {
+    // Optimistic UI update
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, completed: !current } : t))
     );
+    
+    // Persist change
     await fetch(`/api/tasks/${taskId}`, {
       method:  "PATCH",
       headers: { "Content-Type": "application/json" },
