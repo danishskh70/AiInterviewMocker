@@ -1,10 +1,14 @@
+// DESIGN SYSTEM APPLIED
 import React from "react";
 import Header from "./_components/Header";
+
 const DashboardLayout = ({ children }) => {
   return (
-    <div>
+    <div className="min-h-screen bg-zinc-50">
       <Header />
-      <div className="mx-5 md:mx-20 lg:mx-36">{children}</div>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+        {children}
+      </main>
     </div>
   );
 };

@@ -16,6 +16,14 @@ export const MockInterview = pgTable('mock_interviews', {
     difficulty: difficultyEnum('difficulty').default('INTERMEDIATE'),
     mode: interviewModeEnum('mode').default('PRACTICE'),
     createdAt: varchar('created_at'),
+    summary: json('summary'), // NEW COLUMN
+});
+
+export const InterviewTask = pgTable('interview_tasks', {
+    id: serial('id').primaryKey(),
+    interviewId: integer('interview_id').references(() => MockInterview.id),
+    text: text('text').notNull(),
+    completed: boolean('completed').default(false),
 });
 
 export const InterviewQuestion = pgTable('interview_questions', {

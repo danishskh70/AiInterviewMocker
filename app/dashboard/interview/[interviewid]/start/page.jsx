@@ -1,3 +1,4 @@
+// DESIGN SYSTEM APPLIED
 "use client";
 import { db } from "@/utils/db";
 import { MockInterview, InterviewQuestion } from "@/utils/schema";
@@ -14,11 +15,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { CheckCircle, LoaderCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const RecordAnswerSection = dynamic(
   () => import("./_components/RecordAnswerSection"),
-  { ssr: false },
+  { ssr: false }
 );
 
 function StartInterview({ params }) {
@@ -26,7 +28,7 @@ function StartInterview({ params }) {
   const [questions, setQuestions] = useState([]);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState(new Set());
-  const [timeLeft, setTimeLeft] = useState(1800); // 30 mins
+  const [timeLeft, setTimeLeft] = useState(1800);
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
@@ -45,7 +47,6 @@ function StartInterview({ params }) {
       const resolvedParams = await params;
       const interviewId = resolvedParams.interviewid;
 
-      // 1. Fetch Interview Meta
       const [interview] = await db
         .select()
         .from(MockInterview)
@@ -53,7 +54,6 @@ function StartInterview({ params }) {
 
       setInterviewData(interview);
 
-      // 2. Fetch Questions Relationally
       if (interview) {
         const fetchedQuestions = await db
           .select()
@@ -62,7 +62,6 @@ function StartInterview({ params }) {
 
         setQuestions(fetchedQuestions);
 
-        // 3. Auto-focus retry question if present
         if (retryQuestionId) {
           const idx = fetchedQuestions.findIndex(
             (q) => String(q.id) === retryQuestionId
@@ -85,13 +84,31 @@ function StartInterview({ params }) {
     }
   };
 
-  if (!interviewData) return <div>Loading interview...</div>;
-  if (questions.length === 0) return <div>Loading questions...</div>;
+  // Loading states
+  if (!interviewData)
+    return (
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <LoaderCircle className="h-6 w-6 animate-spin text-zinc-400" />
+          <p className="text-sm text-zinc-500">Loading interview...</p>
+        </div>
+      </div>
+    );
+
+  if (questions.length === 0)
+    return (
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <LoaderCircle className="h-6 w-6 animate-spin text-zinc-400" />
+          <p className="text-sm text-zinc-500">Loading questions...</p>
+        </div>
+      </div>
+    );
 
   const allAnswered = answeredQuestions.size === questions.length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-zinc-50">
       <ExamHeader
         title={interviewData.jobPosition}
         mode={interviewData.mode}
@@ -100,8 +117,10 @@ function StartInterview({ params }) {
         timeLeft={timeLeft}
       />
 
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-[46%_54%] gap-6">
+
+          {/* Question panel */}
           <div className="flex flex-col">
             <QuestionSection
               questions={questions}
@@ -111,7 +130,8 @@ function StartInterview({ params }) {
             />
           </div>
 
-          <div className="flex flex-col gap-6">
+          {/* Answer panel */}
+          <div className="flex flex-col gap-4">
             <RecordAnswerSection
               question={questions[activeQuestionIndex]}
               activeQuestionIndex={activeQuestionIndex}
@@ -121,17 +141,19 @@ function StartInterview({ params }) {
               answeredQuestions={answeredQuestions}
               setAnsweredQuestions={setAnsweredQuestions}
               onNextQuestion={() => {
-                if (activeQuestionIndex < questions.length - 1) {
+                if (activeQuestionIndex < questions.length - 1)
                   setActiveQuestionIndex(activeQuestionIndex + 1);
-                }
               }}
             />
+
+            {/* Submit test — only when all answered */}
             {allAnswered && (
               <Button
                 onClick={() => setSubmitDialogOpen(true)}
-                className="w-full bg-green-600 hover:bg-green-700"
                 size="lg"
+                className="w-full bg-zinc-900 text-white hover:bg-zinc-700 transition-colors flex items-center gap-2"
               >
+                <CheckCircle className="h-4 w-4" />
                 Submit Test
               </Button>
             )}
@@ -139,28 +161,39 @@ function StartInterview({ params }) {
         </div>
       </div>
 
+      {/* Submit confirmation dialog */}
       <Dialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-white border border-zinc-200">
           <DialogHeader>
-            <DialogTitle>Submit Test</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to submit your test? You will be redirected to the feedback page.
+            <DialogTitle className="text-lg font-bold text-zinc-900">
+              Submit Test
+            </DialogTitle>
+            <DialogDescription className="text-sm text-zinc-500">
+              Are you sure you want to submit? You will be redirected to the feedback page.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-3 justify-end">
+          <div className="flex gap-3 justify-end pt-2">
             <Button
               variant="outline"
               onClick={() => setSubmitDialogOpen(false)}
               disabled={isSubmitting}
+              className="border-zinc-200 text-zinc-700 hover:bg-zinc-50"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmitTest}
               disabled={isSubmitting}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-zinc-900 text-white hover:bg-zinc-700 transition-colors"
             >
-              {isSubmitting ? "Submitting..." : "Confirm Submit"}
+              {isSubmitting ? (
+                <>
+                  <LoaderCircle className="animate-spin h-4 w-4 mr-2" />
+                  Submitting...
+                </>
+              ) : (
+                "Confirm Submit"
+              )}
             </Button>
           </div>
         </DialogContent>

@@ -1,3 +1,4 @@
+// DESIGN SYSTEM APPLIED
 "use client";
 import React, { useState } from "react";
 import {
@@ -17,12 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Plus, AlertTriangle } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
 function AddNewInterview({ weakestCategory }) {
-  const [openDailog, setOpenDailog] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
   const [formData, setFormData] = useState({
     jobPosition: "",
     jobDesc: "",
@@ -39,9 +40,7 @@ function AddNewInterview({ weakestCategory }) {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting form data:", formData);
     setLoading(true);
-
     try {
       const response = await fetch("/api/generate-questions", {
         method: "POST",
@@ -51,17 +50,10 @@ function AddNewInterview({ weakestCategory }) {
           userEmail: user?.primaryEmailAddress?.emailAddress,
         }),
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Response status:", response.status);
-        console.error("Response body:", errorText);
-        throw new Error(`Failed to generate interview: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`Failed: ${response.status}`);
       const { interviewId } = await response.json();
       router.push(`/dashboard/interview/${interviewId}`);
-      setOpenDailog(false);
+      setOpenDialog(false);
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -74,118 +66,137 @@ function AddNewInterview({ weakestCategory }) {
 
   return (
     <div>
+      {/* Trigger card */}
       <div
-        className="p-10 border rounded-lg hover:border-gray-400 cursor-pointer transition-colors"
-        onClick={() => setOpenDailog(true)}
+        onClick={() => setOpenDialog(true)}
+        className="flex flex-col items-center justify-center gap-2 p-8 bg-white border border-zinc-200 border-dashed rounded-xl cursor-pointer hover:border-zinc-400 hover:bg-zinc-50 transition-colors group"
       >
-        <h2 className="text-lg text-center">+ Add new</h2>
+        <div className="h-10 w-10 rounded-full bg-zinc-100 flex items-center justify-center group-hover:bg-zinc-200 transition-colors">
+          <Plus className="h-5 w-5 text-zinc-600" />
+        </div>
+        <p className="text-sm font-medium text-zinc-700">Add New Interview</p>
       </div>
-      <Dialog open={openDailog} onOpenChange={setOpenDailog}>
-        <DialogContent className="max-w-2xl">
+
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent className="max-w-2xl bg-white border border-zinc-200">
           <DialogHeader>
-            <DialogTitle>Setup your Mock Interview</DialogTitle>
-            <DialogDescription>
-              Fill out the details below to create a new mock interview tailored to your role.
+            <DialogTitle className="text-xl font-bold text-zinc-900">
+              Setup Mock Interview
+            </DialogTitle>
+            <DialogDescription className="text-sm text-zinc-500">
+              Fill out the details to create a mock interview tailored to your role.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={onSubmit} className="space-y-4">
+
+          <form onSubmit={onSubmit} className="flex flex-col gap-4 mt-2">
+
+            {/* Weakest category suggestion */}
             {suggestion && (
-              <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
-                <span className="text-amber-700">
+              <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                <span className="text-sm text-amber-700">
                   Weakest area: <strong>{weakestCategory}</strong>
                 </span>
                 <button
                   type="button"
                   onClick={() => updateForm("jobPosition", suggestion)}
-                  className="ml-auto text-xs text-primary underline"
+                  className="ml-auto text-xs font-medium text-amber-700 underline underline-offset-2 hover:text-amber-900"
                 >
                   Practice this
                 </button>
               </div>
             )}
+
             <Input
-              placeholder="Job Position"
+              placeholder="Job Position (e.g. Frontend Engineer)"
               required
               value={formData.jobPosition}
               onChange={(e) => updateForm("jobPosition", e.target.value)}
+              className="border-zinc-300 focus:ring-zinc-900"
             />
+
             <Textarea
               placeholder="Job Description"
               required
               value={formData.jobDesc}
               onChange={(e) => updateForm("jobDesc", e.target.value)}
+              className="border-zinc-300 focus:ring-zinc-900 min-h-24 resize-none"
             />
+
             <Input
               type="number"
               placeholder="Years of Experience"
               required
               value={formData.jobExperience}
               onChange={(e) => updateForm("jobExperience", e.target.value)}
+              className="border-zinc-300 focus:ring-zinc-900"
             />
 
-            <div className="grid grid-cols-3 gap-4">
-              <Select
-                value={formData.interviewType}
-                onValueChange={(v) => updateForm("interviewType", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    "REACT",
-                    "NODEJS",
-                    "SQL",
-                    "SYSTEM_DESIGN",
-                    "JAVA",
-                    "BEHAVIORAL",
-                    "HR",
-                    "FULL_STACK",
-                  ].map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={formData.difficulty}
-                onValueChange={(v) => updateForm("difficulty", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"].map(
-                    (d) => (
-                      <SelectItem key={d} value={d}>
-                        {d}
-                      </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
-              <Select
-                value={formData.mode}
-                onValueChange={(v) => updateForm("mode", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {["PRACTICE", "EXAM", "ADAPTIVE"].map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {m}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-3 gap-3">
+              {/* Interview type */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-zinc-500">Type</label>
+                <Select
+                  value={formData.interviewType}
+                  onValueChange={(v) => updateForm("interviewType", v)}
+                >
+                  <SelectTrigger className="border-zinc-300">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["REACT","NODEJS","SQL","SYSTEM_DESIGN","JAVA","BEHAVIORAL","HR","FULL_STACK"].map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Difficulty */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-zinc-500">Difficulty</label>
+                <Select
+                  value={formData.difficulty}
+                  onValueChange={(v) => updateForm("difficulty", v)}
+                >
+                  <SelectTrigger className="border-zinc-300">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["BEGINNER","INTERMEDIATE","ADVANCED","EXPERT"].map((d) => (
+                      <SelectItem key={d} value={d}>{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Mode */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-zinc-500">Mode</label>
+                <Select
+                  value={formData.mode}
+                  onValueChange={(v) => updateForm("mode", v)}
+                >
+                  <SelectTrigger className="border-zinc-300">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["PRACTICE","EXAM","ADAPTIVE"].map((m) => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-zinc-900 text-white hover:bg-zinc-700 transition-colors mt-2"
+            >
               {loading ? (
                 <>
-                  <LoaderCircle className="animate-spin mr-2" /> Creating...
+                  <LoaderCircle className="animate-spin h-4 w-4 mr-2" />
+                  Creating...
                 </>
               ) : (
                 "Create Interview"

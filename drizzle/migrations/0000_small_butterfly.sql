@@ -1,6 +1,21 @@
-CREATE TYPE "public"."difficulty" AS ENUM('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT');--> statement-breakpoint
-CREATE TYPE "public"."interview_mode" AS ENUM('PRACTICE', 'EXAM', 'ADAPTIVE');--> statement-breakpoint
-CREATE TYPE "public"."interview_type" AS ENUM('REACT', 'NODEJS', 'SQL', 'SYSTEM_DESIGN', 'JAVA', 'BEHAVIORAL', 'HR', 'FULL_STACK');--> statement-breakpoint
+DO $$ BEGIN
+    CREATE TYPE "public"."difficulty" AS ENUM('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+    CREATE TYPE "public"."interview_mode" AS ENUM('PRACTICE', 'EXAM', 'ADAPTIVE');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+    CREATE TYPE "public"."interview_type" AS ENUM('REACT', 'NODEJS', 'SQL', 'SYSTEM_DESIGN', 'JAVA', 'BEHAVIORAL', 'HR', 'FULL_STACK');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "interview_questions" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"interview_id" integer,

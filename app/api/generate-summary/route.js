@@ -1,5 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { db } from "@/utils/db";
+import { MockInterview, InterviewTask } from "@/utils/schema";
+import { eq } from "drizzle-orm";
 
 const generateFallbackSummary = (answers = [], jobPosition = "Software Engineer", jobExperience = "2") => {
   const avgRating = answers.length > 0
@@ -27,8 +30,19 @@ const generateFallbackSummary = (answers = [], jobPosition = "Software Engineer"
 };
 
 export async function POST(req) {
-  const { answers, jobPosition, jobExperience } = await req.json();
+  const { interviewId, answers, jobPosition, jobExperience } = await req.json();
 
+  // 1. Check if summary already exists
+  const [existing] = await db
+    .select({ summary: MockInterview.summary })
+    .from(MockInterview)
+    .where(eq(MockInterview.mockId, interviewId));
+
+  if (existing?.summary) {
+    return NextResponse.json(existing.summary);
+  }
+
+  // 2. If not, generate
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "API key not configured" }, { status: 500 });
@@ -72,19 +86,38 @@ Output:
   try {
     const result = await model.generateContent(summaryPrompt);
     const text = result.response.text();
-    console.log("Gemini raw output for summary:", text);
     const clean = text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
-    return NextResponse.json(JSON.parse(clean));
-  } catch (err) {
-    console.error("Summary Error:", err);
+    const summaryData = JSON.parse(clean);
 
-    // Check if it's a rate limit error
-    if (err.status === 429) {
-      console.log("Rate limit exceeded for summary, using fallback");
-      return NextResponse.json(generateFallbackSummary(answers, jobPosition, jobExperience));
+    // 3. Save summary
+    await db.update(MockInterview)
+      .set({ summary: summaryData })
+      .where(eq(MockInterview.mockId, interviewId));
+
+    // 4. Save tasks
+    if (summaryData.improvement_plan?.length > 0) {
+      // Fetch ID first (await is fine here)
+      const rows = await db.select({ id: MockInterview.id }).from(MockInterview).where(eq(MockInterview.mockId, interviewId));
+      const interviewRow = rows[0];
+      
+      if (interviewRow) {
+        // Map *synchronously* to an array of objects
+        const tasksToInsert = summaryData.improvement_plan.map(text => ({
+          interviewId: interviewRow.id,
+          text
+        }));
+        
+        // Insert in one go
+        await db.insert(InterviewTask).values(tasksToInsert);
+      }
     }
 
-    // For other errors, also use fallback
-    return NextResponse.json(generateFallbackSummary(answers, jobPosition, jobExperience));
+    return NextResponse.json(summaryData);
+  } catch (err) {
+    console.error("Summary Error:", err);
+    return NextResponse.json(
+        { error: "Failed to generate summary", details: err.message, ...generateFallbackSummary(answers, jobPosition, jobExperience), isFallback: true },
+        { status: 500 }
+    );
   }
 }
