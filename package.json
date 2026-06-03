@@ -13,10 +13,14 @@
   "dependencies": {
     "@clerk/nextjs": "^6.0.2",
     "@google/generative-ai": "^0.24.1",
+    "@huggingface/inference": "^4.13.18",
     "@neondatabase/serverless": "^0.10.1",
     "@radix-ui/react-collapsible": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-progress": "^1.1.0",
+    "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-tabs": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -25,6 +29,7 @@
     "drizzle-orm": "^0.35.3",
     "lucide-react": "^0.453.0",
     "next": "^16.2.6",
+    "openai": "^6.41.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-speech-to-text": "^0.8.0",
@@ -33,7 +38,8 @@
     "recharts": "^3.8.1",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
-    "uuid": "^11.0.2"
+    "uuid": "^11.0.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "22.8.1",

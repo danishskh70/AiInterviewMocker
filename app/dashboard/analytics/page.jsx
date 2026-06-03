@@ -172,6 +172,21 @@ function Analytics() {
         </div>
       </section>
 
+      {/* Category Breakdown */}
+      <section className="mb-12">
+        <Card className="p-4 h-80">
+          <CardTitle className="text-sm text-slate-500 mb-4">Category Breakdown</CardTitle>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={[]} margin={{ bottom: 40 }}>
+              <XAxis dataKey="category" interval={0} angle={-45} textAnchor="end" height={60} />
+              <YAxis domain={[0, 10]} />
+              <Tooltip />
+              <Bar dataKey="avg" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      </section>
+
       {/* INTERVIEW HISTORY */}
       <section>
         <h2 className="text-xl font-semibold mb-4">Interview History</h2>

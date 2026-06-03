@@ -26,7 +26,7 @@ export default async function Dashboard() {
 
       <div className="my-6">
         <Link href="/dashboard/analytics">
-          <Button className="w-full bg-black hover:bg-gray-800" size="lg">
+          <Button className="w-full bg-white text-black border border-black hover:bg-gray-100" size="lg">
             View Performance Analytics
           </Button>
         </Link>
