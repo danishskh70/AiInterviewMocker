@@ -484,6 +484,16 @@ function Feedback() {
           {selectedQuestion && (
             <div className="flex flex-col gap-6">
 
+              {/* User Answer */}
+              <div className="flex flex-col gap-2">
+                <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                  Your Answer
+                </p>
+                <p className="text-sm text-zinc-900 bg-zinc-50 p-4 rounded-xl border border-zinc-100 leading-relaxed">
+                  {selectedQuestion.userAns}
+                </p>
+              </div>
+
               {/* Question */}
               <div className="flex flex-col gap-2">
                 <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">

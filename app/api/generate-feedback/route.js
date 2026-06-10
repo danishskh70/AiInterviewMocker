@@ -24,12 +24,20 @@ OUTPUT ONLY valid JSON (no markdown):
 
     const result = await chatSession.generateContent(feedbackPrompt);
     const responseText = result.response.text();
-    const cleanJson = responseText
-      .replace(/```json\s*/g, '')
-      .replace(/```/g, '')
-      .trim();
+    
+    // Robust parsing
+    const match = responseText.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("No JSON found in response");
 
-    return NextResponse.json(JSON.parse(cleanJson));
+    let jsonData;
+    try {
+      jsonData = JSON.parse(match[0]);
+    } catch {
+      const trimmed = match[0].replace(/\}\s*\}$/, '}');
+      jsonData = JSON.parse(trimmed);
+    }
+
+    return NextResponse.json(jsonData);
 
   } catch (error) {
     console.error("Feedback generation failed:", error);

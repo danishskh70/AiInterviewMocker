@@ -81,8 +81,18 @@ Output:
   try {
     const result = await model.generateContent(summaryPrompt);
     const text = result.response.text();
-    const clean = text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
-    const summaryData = JSON.parse(clean);
+    
+    // Robust parsing
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("No JSON found in response");
+
+    let summaryData;
+    try {
+      summaryData = JSON.parse(match[0]);
+    } catch {
+      const trimmed = match[0].replace(/\}\s*\}$/, '}');
+      summaryData = JSON.parse(trimmed);
+    }
 
     // 3. Save summary + tasks
     if (interviewId) {

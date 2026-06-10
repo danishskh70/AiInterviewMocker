@@ -34,8 +34,18 @@ export async function POST(req) {
     const responseText = result.response.text();
     console.log("Gemini Response:", responseText);
     
-    const cleanJson = responseText.replace(/```json\s*/g, '').replace(/```/g, '').trim();
-    const jsonResponse = JSON.parse(cleanJson);
+    // Robust parsing: extract potential JSON, parse, handle trailing braces if necessary
+    const match = responseText.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("No JSON found in response");
+
+    let jsonResponse;
+    try {
+      jsonResponse = JSON.parse(match[0]);
+    } catch {
+      // Strip trailing extra braces and retry
+      const trimmed = match[0].replace(/\}\s*\}$/, '}');
+      jsonResponse = JSON.parse(trimmed);
+    }
     console.log("JSON parsed successfully");
 
     // Persist to DB using service
