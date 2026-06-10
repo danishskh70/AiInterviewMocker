@@ -44,7 +44,12 @@ export async function POST(req) {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ 
+    model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+    },
+  });
 
   const answerBlock = answers.map((a, i) =>
     `Q${i + 1} [${a.type ?? 'general'}]: ${a.question}
@@ -58,7 +63,7 @@ Here are all their answers with ratings:
 
 ${answerBlock}
 
-Write a complete interview debrief. Output raw JSON only, no markdown.
+Write a complete interview debrief. Output raw JSON only.
 
 Rules:
 - overall_verdict: one blunt sentence — hire / maybe / no hire and why
@@ -82,17 +87,15 @@ Output:
     const result = await model.generateContent(summaryPrompt);
     const text = result.response.text();
     
-    // Robust parsing
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON found in response");
+    // Robust extraction
+    const extractJSON = (raw) => {
+      const start = raw.indexOf('{');
+      const end = raw.lastIndexOf('}');
+      if (start === -1 || end === -1) throw new Error('No JSON found in response');
+      return raw.slice(start, end + 1);
+    };
 
-    let summaryData;
-    try {
-      summaryData = JSON.parse(match[0]);
-    } catch {
-      const trimmed = match[0].replace(/\}\s*\}$/, '}');
-      summaryData = JSON.parse(trimmed);
-    }
+    const summaryData = JSON.parse(extractJSON(text));
 
     // 3. Save summary + tasks
     if (interviewId) {

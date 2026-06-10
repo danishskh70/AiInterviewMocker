@@ -25,17 +25,15 @@ OUTPUT ONLY valid JSON (no markdown):
     const result = await chatSession.generateContent(feedbackPrompt);
     const responseText = result.response.text();
     
-    // Robust parsing
-    const match = responseText.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON found in response");
+    // Robust extraction
+    const extractJSON = (raw) => {
+      const start = raw.indexOf('{');
+      const end = raw.lastIndexOf('}');
+      if (start === -1 || end === -1) throw new Error('No JSON found in response');
+      return raw.slice(start, end + 1);
+    };
 
-    let jsonData;
-    try {
-      jsonData = JSON.parse(match[0]);
-    } catch {
-      const trimmed = match[0].replace(/\}\s*\}$/, '}');
-      jsonData = JSON.parse(trimmed);
-    }
+    const jsonData = JSON.parse(extractJSON(responseText));
 
     return NextResponse.json(jsonData);
 

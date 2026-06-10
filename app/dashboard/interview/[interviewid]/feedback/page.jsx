@@ -86,6 +86,7 @@ function Feedback() {
           id:       UserAnswer.id,
           question: InterviewQuestion.question,
           userAns:  UserAnswer.userAns,
+          modelAnswer: InterviewQuestion.modelAnswer,
           feedback: UserAnswer.feedback,
           rating:   UserAnswer.rating,
           hintUsed: UserAnswer.hintUsed,
@@ -484,6 +485,16 @@ function Feedback() {
           {selectedQuestion && (
             <div className="flex flex-col gap-6">
 
+              {/* Question */}
+              <div className="flex flex-col gap-2">
+                <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                  Question
+                </p>
+                <p className="text-sm text-zinc-900 leading-relaxed">
+                  {selectedQuestion.question}
+                </p>
+              </div>
+
               {/* User Answer */}
               <div className="flex flex-col gap-2">
                 <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
@@ -494,13 +505,13 @@ function Feedback() {
                 </p>
               </div>
 
-              {/* Question */}
+              {/* Expected Answer */}
               <div className="flex flex-col gap-2">
                 <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
-                  Question
+                  Expected Answer
                 </p>
-                <p className="text-sm text-zinc-900 leading-relaxed">
-                  {selectedQuestion.question}
+                <p className="text-sm text-zinc-700 bg-zinc-50 p-4 rounded-xl border border-zinc-100 leading-relaxed italic">
+                  {selectedQuestion.modelAnswer}
                 </p>
               </div>
 

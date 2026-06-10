@@ -17,7 +17,7 @@ export async function POST(req) {
     Difficulty: ${validatedData.difficulty}
     Interview Type: ${validatedData.interviewType}
     
-    Return ONLY a valid JSON object with the following structure. No markdown formatting:
+    Return ONLY a valid JSON object with the following structure. No markdown formatting. IMPORTANT: Ensure each JSON object has only ONE unique key for "question". Do not duplicate keys.
     {
       "questions": [{
         "question": "string",
@@ -34,29 +34,52 @@ export async function POST(req) {
     const responseText = result.response.text();
     console.log("Gemini Response:", responseText);
     
-    // Robust parsing: extract potential JSON, parse, handle trailing braces if necessary
-    const match = responseText.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON found in response");
+    // Robust extraction: find first { and last }
+    const extractJSON = (raw) => {
+      const start = raw.indexOf('{');
+      const end = raw.lastIndexOf('}');
+      if (start === -1 || end === -1) throw new Error('No JSON found in response');
+      return raw.slice(start, end + 1);
+    };
 
-    let jsonResponse;
-    try {
-      jsonResponse = JSON.parse(match[0]);
-    } catch {
-      // Strip trailing extra braces and retry
-      const trimmed = match[0].replace(/\}\s*\}$/, '}');
-      jsonResponse = JSON.parse(trimmed);
+    const jsonResponse = JSON.parse(extractJSON(responseText));
+
+    // Hardened Validation: Drop malformed or suspicious questions
+    const validatedQuestions = jsonResponse.questions.filter((q) => {
+      const isMalformed = 
+        q.question === q.modelAnswer || 
+        (q.question?.trim().length < 15) || 
+        !q.question || 
+        !q.modelAnswer;
+      
+      if (isMalformed) {
+        console.warn("Discarding malformed question:", q);
+        return false;
+      }
+      return true;
+    });
+
+    if (validatedQuestions.length === 0) throw new Error("All generated questions were malformed");
+    
+    // Log if we have fewer than requested
+    if (validatedQuestions.length < 5) {
+      console.warn(`Warning: Only generated ${validatedQuestions.length} valid questions.`);
     }
-    console.log("JSON parsed successfully");
+
+    console.log(`JSON parsed and validated successfully. Count: ${validatedQuestions.length}`);
 
     // Persist to DB using service
     console.log("Persisting to DB...");
     const interview = await createInterviewService({ ...validatedData, userEmail: body.userEmail });
     console.log("Interview created:", interview.id);
     
-    await addQuestionsToInterview(interview.id, jsonResponse.questions);
+    await addQuestionsToInterview(interview.id, validatedQuestions);
     console.log("Questions persisted");
 
-    return NextResponse.json({ interviewId: interview.mockId });
+    return NextResponse.json({ 
+      interviewId: interview.mockId,
+      questionCount: validatedQuestions.length 
+    });
   } catch (error) {
     console.error("CRITICAL API ERROR:", error);
     return NextResponse.json({ error: "Failed to generate interview", details: error.message }, { status: 500 });
