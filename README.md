@@ -1,13 +1,22 @@
 # AI Interview Mocker
-AI Interview Mocker – Practice interviews with AI feedback.
+AI Interview Mocker – Practice interviews with advanced AI feedback and performance tracking.
+
 ---
 
-## 🌟 Features
+## 🚀 Key Improvements
 
-- **Real-Time AI Feedback**: Get instant analysis of your answers to improve your performance.
-- **Intuitive Design**: Easy-to-use interface built for all levels of users.
-- **Custom Questions**: Practice with tailored questions for your target role.
-- **Progress Tracking**: Monitor improvements over time to stay motivated.
+- **Calibrated AI Feedback**: Precision-engineered evaluation rubric focusing on conceptual understanding over keyword matching, with penalty calibration for objective scoring.
+- **Smart Analytics**: Centralized performance dashboard with trend charts, score tracking, and category breakdowns.
+- **Interview Management**: Easily manage your practice sessions with intuitive creation and removal functionality.
+
+---
+
+## 🌟 Core Features
+
+- **Advanced AI Analysis**: Get actionable, rubric-based feedback on technical accuracy and conceptual depth.
+- **Performance Analytics**: Track your progress with visual career trend charts and filler word monitoring.
+- **Custom Mock Interviews**: Generate tailored questions based on role, experience, and difficulty level.
+- **Seamless Management**: Quickly start, review, or delete mock interview sessions.
 
 ---
 
@@ -15,10 +24,9 @@ AI Interview Mocker – Practice interviews with AI feedback.
 
 AI Interview Mocker is powered by:
 
-- **Frontend**: React.js with Next.js
-- **Backend**: Node.js, Express.js
-- **Database**: PostgreSQL
-- **AI Integration**: OpenAI APIs
+- **Frontend**: React.js with Next.js (App Router)
+- **Database**: PostgreSQL with Drizzle ORM
+- **AI Integration**: Google Generative AI (Gemini)
 
 ---
 
