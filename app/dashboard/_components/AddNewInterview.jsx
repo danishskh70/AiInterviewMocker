@@ -1,4 +1,3 @@
-// DESIGN SYSTEM APPLIED
 "use client";
 import React, { useState } from "react";
 import {
@@ -18,9 +17,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LoaderCircle, Plus, AlertTriangle } from "lucide-react";
+import { LoaderCircle, Plus, AlertTriangle, ChevronRight, ChevronLeft } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { GeneratingQuestionsUI } from "./GeneratingQuestionsUI";
+
+const UI_MAPPING = {
+  type: {
+    TECHNICAL: "Technical Interview",
+    BEHAVIORAL: "Behavioral Interview",
+    HR: "HR/Screening Interview",
+    MANAGERIAL: "Managerial Interview",
+  },
+  difficulty: {
+    BEGINNER: "Entry Level",
+    INTERMEDIATE: "Mid-Level",
+    ADVANCED: "Senior/Lead",
+    EXPERT: "Expert",
+  },
+  mode: {
+    PRACTICE: "Practice Mode (With Hints)",
+    EXAM: "Exam Mode (No Hints)",
+    ADAPTIVE: "Adaptive",
+  },
+};
 
 function AddNewInterview({ weakestCategory }) {
   const [openDialog, setOpenDialog] = useState(false);
@@ -28,7 +48,7 @@ function AddNewInterview({ weakestCategory }) {
     jobPosition: "",
     jobDesc: "",
     jobExperience: "",
-    interviewType: "BEHAVIORAL",
+    interviewType: "TECHNICAL",
     difficulty: "INTERMEDIATE",
     mode: "PRACTICE",
   });
@@ -40,6 +60,7 @@ function AddNewInterview({ weakestCategory }) {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    
     setLoading(true);
     try {
       const response = await fetch("/api/generate-questions", {
@@ -66,7 +87,6 @@ function AddNewInterview({ weakestCategory }) {
 
   return (
     <div>
-      {/* Trigger card */}
       <div
         onClick={() => setOpenDialog(true)}
         className="flex flex-col items-center justify-center gap-2 p-8 bg-white border border-zinc-200 border-dashed rounded-xl cursor-pointer hover:border-zinc-400 hover:bg-zinc-50 transition-colors group"
@@ -89,119 +109,111 @@ function AddNewInterview({ weakestCategory }) {
           </DialogHeader>
 
           <form onSubmit={onSubmit} className="flex flex-col gap-4 mt-2">
+            {loading ? (
+              <GeneratingQuestionsUI />
+            ) : (
+              <>
+                {suggestion && (
+                  <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                    <span className="text-sm text-amber-700">
+                      Weakest area: <strong>{weakestCategory}</strong>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => updateForm("jobPosition", suggestion)}
+                      className="ml-auto text-xs font-medium text-amber-700 underline underline-offset-2 hover:text-amber-900"
+                    >
+                      Practice this
+                    </button>
+                  </div>
+                )}
+                <Input
+                  placeholder="Job Position (e.g. Frontend Engineer)"
+                  required
+                  value={formData.jobPosition}
+                  onChange={(e) => updateForm("jobPosition", e.target.value)}
+                  className="border-zinc-300 focus:ring-zinc-900"
+                />
+                <Textarea
+                  placeholder="Job Description"
+                  required
+                  value={formData.jobDesc}
+                  onChange={(e) => updateForm("jobDesc", e.target.value)}
+                  className="border-zinc-300 focus:ring-zinc-900 min-h-24 resize-none"
+                />
+                <Input
+                  type="number"
+                  placeholder="Years of Experience"
+                  required
+                  value={formData.jobExperience}
+                  onChange={(e) => updateForm("jobExperience", e.target.value)}
+                  className="border-zinc-300 focus:ring-zinc-900"
+                />
 
-            {/* Weakest category suggestion */}
-            {suggestion && (
-              <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
-                <span className="text-sm text-amber-700">
-                  Weakest area: <strong>{weakestCategory}</strong>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => updateForm("jobPosition", suggestion)}
-                  className="ml-auto text-xs font-medium text-amber-700 underline underline-offset-2 hover:text-amber-900"
+                {/* Interview type */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-zinc-500">Type</label>
+                  <Select
+                    value={formData.interviewType}
+                    onValueChange={(v) => updateForm("interviewType", v)}
+                  >
+                    <SelectTrigger className="border-zinc-300">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      {Object.keys(UI_MAPPING.type).map((t) => (
+                        <SelectItem key={t} value={t}>{UI_MAPPING.type[t]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Difficulty */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-zinc-500">Difficulty</label>
+                  <Select
+                    value={formData.difficulty}
+                    onValueChange={(v) => updateForm("difficulty", v)}
+                  >
+                    <SelectTrigger className="border-zinc-300">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      {Object.keys(UI_MAPPING.difficulty).map((d) => (
+                        <SelectItem key={d} value={d}>{UI_MAPPING.difficulty[d]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Mode */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-zinc-500">Mode</label>
+                  <Select
+                    value={formData.mode}
+                    onValueChange={(v) => updateForm("mode", v)}
+                  >
+                    <SelectTrigger className="border-zinc-300">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      {Object.keys(UI_MAPPING.mode).map((m) => (
+                        <SelectItem key={m} value={m}>{UI_MAPPING.mode[m]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-zinc-900 text-white hover:bg-zinc-700 transition-colors"
                 >
-                  Practice this
-                </button>
-              </div>
+                  Create Interview
+                </Button>
+              </>
             )}
-
-            <Input
-              placeholder="Job Position (e.g. Frontend Engineer)"
-              required
-              value={formData.jobPosition}
-              onChange={(e) => updateForm("jobPosition", e.target.value)}
-              className="border-zinc-300 focus:ring-zinc-900"
-            />
-
-            <Textarea
-              placeholder="Job Description"
-              required
-              value={formData.jobDesc}
-              onChange={(e) => updateForm("jobDesc", e.target.value)}
-              className="border-zinc-300 focus:ring-zinc-900 min-h-24 resize-none"
-            />
-
-            <Input
-              type="number"
-              placeholder="Years of Experience"
-              required
-              value={formData.jobExperience}
-              onChange={(e) => updateForm("jobExperience", e.target.value)}
-              className="border-zinc-300 focus:ring-zinc-900"
-            />
-
-            <div className="grid grid-cols-3 gap-3">
-              {/* Interview type */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-zinc-500">Type</label>
-                <Select
-                  value={formData.interviewType}
-                  onValueChange={(v) => updateForm("interviewType", v)}
-                >
-                  <SelectTrigger className="border-zinc-300">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["REACT","NODEJS","SQL","SYSTEM_DESIGN","JAVA","BEHAVIORAL","HR","FULL_STACK"].map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Difficulty */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-zinc-500">Difficulty</label>
-                <Select
-                  value={formData.difficulty}
-                  onValueChange={(v) => updateForm("difficulty", v)}
-                >
-                  <SelectTrigger className="border-zinc-300">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["BEGINNER","INTERMEDIATE","ADVANCED","EXPERT"].map((d) => (
-                      <SelectItem key={d} value={d}>{d}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Mode */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-zinc-500">Mode</label>
-                <Select
-                  value={formData.mode}
-                  onValueChange={(v) => updateForm("mode", v)}
-                >
-                  <SelectTrigger className="border-zinc-300">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["PRACTICE","EXAM","ADAPTIVE"].map((m) => (
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-zinc-900 text-white hover:bg-zinc-700 transition-colors mt-2"
-            >
-              {loading ? (
-                <>
-                  <LoaderCircle className="animate-spin h-4 w-4 mr-2" />
-                  Creating...
-                </>
-              ) : (
-                "Create Interview"
-              )}
-            </Button>
           </form>
         </DialogContent>
       </Dialog>

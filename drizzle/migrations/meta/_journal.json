@@ -15,6 +15,13 @@
       "when": 1780485897886,
       "tag": "0001_brave_the_fallen",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781165894254,
+      "tag": "0002_gifted_shiver_man",
+      "breakpoints": true
     }
   ]
 }

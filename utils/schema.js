@@ -1,7 +1,7 @@
 import { pgTable, serial, text, varchar, integer, boolean, pgEnum, json } from 'drizzle-orm/pg-core';
 import { v4 as uuidv4 } from 'uuid';
 
-export const interviewTypeEnum = pgEnum('interview_type', ['REACT', 'NODEJS', 'SQL', 'SYSTEM_DESIGN', 'JAVA', 'BEHAVIORAL', 'HR', 'FULL_STACK']);
+export const interviewTypeEnum = pgEnum('interview_type', ['TECHNICAL', 'BEHAVIORAL', 'HR', 'MANAGERIAL']);
 export const difficultyEnum = pgEnum('difficulty', ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT']);
 export const interviewModeEnum = pgEnum('interview_mode', ['PRACTICE', 'EXAM', 'ADAPTIVE']);
 
