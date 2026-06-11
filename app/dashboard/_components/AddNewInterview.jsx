@@ -82,8 +82,20 @@ function AddNewInterview({ weakestCategory }) {
     }
   };
 
-  const updateForm = (key, value) =>
-    setFormData((prev) => ({ ...prev, [key]: value }));
+  const toTitleCase = (str) => {
+    return str.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    );
+  };
+
+  const updateForm = (key, value) => {
+    let processedValue = value;
+    if (key === "jobPosition") {
+      processedValue = toTitleCase(value);
+    }
+    setFormData((prev) => ({ ...prev, [key]: processedValue }));
+  };
 
   return (
     <div>
