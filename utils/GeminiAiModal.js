@@ -17,7 +17,7 @@ Provide scores from 1-10 based on industry standards.`,
 
 // Optimized generation config for better accuracy
 const generationConfig = {
-  temperature: 0.7, // Lower temperature for more consistent/accurate responses
+  temperature: 0.2, // Lower temperature for more consistent/accurate responses
   topP: 0.9, // Slightly lower for focused output
   topK: 40, // Lower K for more deterministic results
   maxOutputTokens: 8192, // Increased to prevent truncation

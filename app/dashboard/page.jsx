@@ -5,15 +5,8 @@ import { Button } from "@/components/ui/button";
 import { BarChart2 } from "lucide-react";
 import AddNewInterview from "./_components/AddNewInterview";
 import InterviewList from "./_components/InterviewList";
-import DashboardStats from "./_components/DashboardStats";
-import { getUserAnalytics } from "../../lib/services/progressService";
-import { currentUser } from "@clerk/nextjs/server";
 
 export default async function Dashboard() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress;
-  const stats = email ? await getUserAnalytics(email) : null;
-
   return (
     <div className="flex flex-col gap-8 animate-fadeSlideUp">
 
@@ -27,14 +20,9 @@ export default async function Dashboard() {
         </p>
       </div>
 
-      {/* Stats row */}
-      {stats && (
-        <DashboardStats stats={stats} />
-      )}
-
       {/* Add new interview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <AddNewInterview weakestCategory={stats?.weakestCategory} />
+        <AddNewInterview />
       </div>
 
       {/* Analytics CTA */}

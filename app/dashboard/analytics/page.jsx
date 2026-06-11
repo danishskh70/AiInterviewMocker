@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { fetchUserAnalytics, fetchInterviews } from "../actions";
+import DashboardStats from "../_components/DashboardStats";
 import {
   LineChart, Line,
   XAxis, YAxis,
@@ -13,6 +14,7 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, TrendingDown, Award, BarChart2 } from "lucide-react";
+import { getUserAnalytics } from "@/lib/services/progressService";
 
 const TOOLTIP_STYLE = {
   background:   "#fff",
@@ -26,15 +28,21 @@ function Analytics() {
   const router     = useRouter();
   const [data, setData]           = useState([]);
   const [interviews, setInterviews] = useState([]);
+  const [stats, setStats]         = useState(null);
   const [loading, setLoading]     = useState(true);
 
   useEffect(() => {
     const email = user?.primaryEmailAddress?.emailAddress;
     if (email) {
-      Promise.all([fetchUserAnalytics(email), fetchInterviews(email)])
-        .then(([answers, interviewList]) => {
+      Promise.all([
+        fetchUserAnalytics(email), 
+        fetchInterviews(email),
+        getUserAnalytics(email)
+      ])
+        .then(([answers, interviewList, dashboardStats]) => {
           setData(answers);
           setInterviews(interviewList);
+          setStats(dashboardStats);
         })
         .finally(() => setLoading(false));
     }
@@ -68,7 +76,7 @@ function Analytics() {
       .reverse();
   }, [interviews, interviewScores]);
 
-  const stats = useMemo(() => {
+  const trendStats = useMemo(() => {
     if (!trendData.length) return null;
     const ratings = trendData.map((d) => d.rating).filter(Boolean);
     const best    = Math.max(...ratings).toFixed(1);
@@ -123,22 +131,22 @@ function Analytics() {
       </div>
 
       {/* Stat cards */}
-      {stats && (
+      {trendStats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
           <div className="bg-white border border-zinc-200 rounded-xl p-6 flex flex-col gap-1 hover:shadow-md transition-shadow">
             <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
               Total Interviews
             </p>
-            <p className="text-2xl font-bold text-zinc-900">{stats.total}</p>
+            <p className="text-2xl font-bold text-zinc-900">{trendStats.total}</p>
           </div>
 
-          <div className={`border rounded-xl p-6 flex flex-col gap-1 hover:shadow-md transition-shadow ${getScoreBg(stats.latest)}`}>
+          <div className={`border rounded-xl p-6 flex flex-col gap-1 hover:shadow-md transition-shadow ${getScoreBg(trendStats.latest)}`}>
             <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
               Latest Score
             </p>
-            <p className={`text-2xl font-bold ${getScoreColor(stats.latest)}`}>
-              {stats.latest}
+            <p className={`text-2xl font-bold ${getScoreColor(trendStats.latest)}`}>
+              {trendStats.latest}
               <span className="text-sm font-normal text-zinc-400">/10</span>
             </p>
           </div>
@@ -150,7 +158,7 @@ function Analytics() {
             <div className="flex items-center gap-1.5">
               <Award className="h-4 w-4 text-zinc-400" />
               <p className="text-2xl font-bold text-zinc-900">
-                {stats.best}
+                {trendStats.best}
                 <span className="text-sm font-normal text-zinc-400">/10</span>
               </p>
             </div>
@@ -161,19 +169,19 @@ function Analytics() {
               Overall Trend
             </p>
             <div className="flex items-center gap-1.5">
-              {stats.trend !== null && parseFloat(stats.trend) >= 0
+              {trendStats.trend !== null && parseFloat(trendStats.trend) >= 0
                 ? <TrendingUp className="h-4 w-4 text-green-600" />
                 : <TrendingDown className="h-4 w-4 text-red-500" />
               }
               <p className={`text-2xl font-bold ${
-                stats.trend === null
+                trendStats.trend === null
                   ? "text-zinc-400"
-                  : parseFloat(stats.trend) >= 0
+                  : parseFloat(trendStats.trend) >= 0
                   ? "text-green-700"
                   : "text-red-600"
               }`}>
-                {stats.trend !== null
-                  ? `${parseFloat(stats.trend) >= 0 ? "+" : ""}${stats.trend}`
+                {trendStats.trend !== null
+                  ? `${parseFloat(trendStats.trend) >= 0 ? "+" : ""}${trendStats.trend}`
                   : "N/A"
                 }
               </p>

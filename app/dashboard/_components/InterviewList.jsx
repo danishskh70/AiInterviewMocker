@@ -50,6 +50,7 @@ function InterviewList() {
             <InterviewItemCard
               key={interview.id || index}
               interview={interview}
+              onDelete={(id) => setInterviewList(prev => prev.filter(i => i.id !== id))}
             />
           ))}
         </div>
