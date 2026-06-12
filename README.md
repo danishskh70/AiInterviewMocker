@@ -65,6 +65,7 @@ This project uses Drizzle ORM to manage the database. No local PostgreSQL instal
 
 1. Ensure your `DATABASE_URL` is set correctly in `.env.local`.
 2. Push your schema to Neon:
+
 ```bash
 npx drizzle-kit push
 ```
@@ -75,7 +76,7 @@ npx drizzle-kit push
 npm run dev
 ```
 
-Open http://localhost:3000 in your browser.
+Open <http://localhost:3000> in your browser.
 
 ---
 
@@ -89,7 +90,7 @@ Open http://localhost:3000 in your browser.
 
 ## 🌐 Website
 
-Live: (add deployed URL)
+Live: <https://aiinterviewmocker.onrender.com/>
 
 ---
 
